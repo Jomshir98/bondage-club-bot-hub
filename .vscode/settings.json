@@ -1,0 +1,16 @@
+{
+	"editor.insertSpaces": false,
+	"editor.renderWhitespace": "trailing",
+	"git.rebaseWhenSync": true,
+	"debug.onTaskErrors": "showErrors",
+	"debug.console.historySuggestions": false,
+	"[typescript]": {
+		"editor.defaultFormatter": "vscode.typescript-language-features",
+		"editor.formatOnSave": true
+	},
+	"typescript.preferences.importModuleSpecifier": "relative",
+	"typescript.preferences.importModuleSpecifierEnding": "minimal",
+	"typescript.updateImportsOnFileMove.enabled": "always",
+	"javascript.preferences.importModuleSpecifier": "relative",
+	"javascript.updateImportsOnFileMove.enabled": "always"
+}

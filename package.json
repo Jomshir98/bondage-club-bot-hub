@@ -1,0 +1,35 @@
+{
+  "name": "bondage-club-bot-hub",
+  "version": "1.0.0",
+  "description": "Collection of bots created for Bondage Club",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p .",
+    "start": "yarn run build && node build/index.js",
+    "start-dev": "yarn run build && node --inspect build/index.js",
+    "test": "tsc --noEmit -p . && eslint src",
+    "start-maidspartynight": "yarn run build && node --trace-warnings build/index_maidspartynight.js",
+    "start-gameroom": "yarn run build && node --trace-warnings build/index_gameroom.js",
+    "start-gameroom2": "yarn run build && node --trace-warnings build/index_gameroom2.js",
+    "start-gameroom3": "yarn run build && node --trace-warnings build/index_gameroom3.js",
+    "start-gameroom4": "yarn run build && node --trace-warnings build/index_gameroom4.js"
+  },
+  "author": "Jomshir98",
+  "license": "MIT",
+  "engines": {
+    "node": ">= 12.4.0"
+  },
+  "dependencies": {
+    "@types/lodash": "^4.14.170",
+    "@types/node": "^14.14.35",
+    "bondage-club-bot-api": "file:../bondage-club-bot-api/bondage-club-bot-api-v0.1.1.tgz",
+    "lodash": "^4.17.20"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.26.0",
+    "@typescript-eslint/parser": "^4.26.0",
+    "eslint": "^7.28.0",
+    "ts-node": "^10.0.0",
+    "typescript": "^4.3.2"
+  }
+}
