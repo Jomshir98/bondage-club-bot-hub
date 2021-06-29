@@ -8,7 +8,7 @@ import _ from "lodash";
 
 /** INSTRUCTIONS TO ADD A NEW ROLE
  * Step 1: Add the role variables and according supporting variables to the gameConfig interface, gameConfigs and KidnappersGameRoom class.
- * Step 2: Add a description of that role to either the playerGreeting or the online description of the bot.
+ * Step 2: Add a description of that role to the online description of the bot.
  * Step 3: Add role variable inside the function onCharacterEntered() to update the character object on rejoin and add to handleStartCommand().
  * Step 4: If the role has an active ability, add the command to the chat or whisper section of the onMessage() function.
  * Step 5: If the role has an active ability, add instructions on how to use it in the giveNightInstructions() function.
@@ -16,7 +16,7 @@ import _ from "lodash";
  * Step 7: If the role has an active ability, check the early night end condition in the Tick() function
  * Step 8: In the setGameState() function, add the role variable to the if (state === "game_not_started") branch and if the role
  *         has an active ability, set her target to null in the according branch.
- * Step 9: Add the role and according instructions to the setAllRolesAndCommunicate() (also change gameEndMessage) and rollForRoleFrom() functions.
+ * Step 9: Add the role and according instro to handleMyroleCommand, setAllRolesAndCommunicate() (also edit gameEndMessage) and rollForRoleFrom()
  * Step 10: Think about it, if there are special cases or win conditions with that role that need changes
  */
 
@@ -180,6 +180,48 @@ const listOfUsedItemGroups = _.uniq(listOfUsedItemsInThisScene.map(i => i[0]));
 /** The matchmaking queue count that triggers a beep message to everyone on it */
 const BEEP_AT_THIS_COUNT = 7;
 
+const solo_kidnapper_intro =
+	`GAME: You are the kidnapper. You need to play smart to not be found out by the ` +
+	`club members, who want to stop your actions.`;
+
+const maid_intro =
+	`GAME: You are the shy maid no one really notices, mainly active at night. It is your decision when to ` +
+	`communicate that and things you learned to the other club members, since such a claim might make you a primary target for any ` +
+	`kidnapper. Wait too long and you might end up as nicely gagged and helpless package anyway~`;
+
+const switch_intro =
+	`GAME: You are the switch, who is seen as 'just another subbie' by everyone else. ` +
+	`If by the end of the game, you and one kidnapper are the only two free participants left, your domme side is ` +
+	`able to easily suppress the kidnapper, since they were not expecting it, thus leading to a victory for the club members. ` +
+	`It is your decision if or when to communicate that, since such a claim will make you a primary target for any kidnapper. `;
+
+const fan_intro =
+	`GAME: You are the fan, an avid admirer of the kidnappers, who really wants them to succeed by ` +
+	`by helping them to kidnap everyone and ultimately yourself. There is one problem however! The kidnappers never took notice of ` +
+	`you and you also have no idea who your so admired kidnappers are. Thus, your only chance is to secretly scheme against ` +
+	`the club members, without them finding out about your true intentions.\n[NOTE: You win when the kidnapper(s) win.]`;
+
+const masochist_intro =
+	`GAME: You are the masochist, a total bondage addict who wants nothing more ` +
+	`than to end up in strict bondage. You could care less about kidnappings and day suspicions, not necessarily picking any side, ` +
+	`but they are surely great opportunities to use for fulfilling your dark desire.` +
+	`\n[NOTE: You win when you are tied up when the game ends, independently of the kidnappers or club members winning.]`;
+
+const stalker_intro =
+	`GAME: You are the stalker, obsessively in love with a cute and shy maid you once saw ` +
+	`at a maid initiation. She seems to not be around during the day, though. Thus, you are spending each night trying to stalk ` +
+	`her. Your dream is to be in tight bondage together with her and therefore you secretly support the cause of the kidnappers, ` +
+	`who are trying to snatch away everyone. As a masochistic bondage addict, you just love the thought of seeing everyone ` +
+	`helplessly wiggling in tight, unforgiving distress. It is your decision when to communicate your hidden agenda as well as ` +
+	`the name of the maid, when you finally found her, since such a claim will have a huge impact on the behavior ` +
+	`of everyone else. Especially any kidnapper will surely know how to use you to their advantage.` +
+	`\n[NOTE: You win when the kidnapper(s) win.]`;
+
+const mistress_intro =
+	`GAME: You are a new mistress in the club. It is your decision when/if to communicate that to ` +
+	`the other club members and what you do at night, since revealing yourself might make you a primary target ` +
+	`for any kidnapper. But maybe that is your intention~`;
+
 export class KidnappersGameRoom extends AdministrationLogic {
 	/** The registered players */
 	players: API_Character[] = [];
@@ -243,6 +285,7 @@ export class KidnappersGameRoom extends AdministrationLogic {
 		this.registerCommand("stalk", (connection, args, sender) => this.handleStalkCommand(args, sender), null);
 		this.registerCommand("protect", (connection, args, sender) => this.handleProtectCommand(args, sender), null);
 		this.registerCommand("beepme", (connection, args, sender) => this.handleBeepmeCommand(sender), `To get beeped when enough players are online`);
+		this.registerCommand("myrole", (connection, args, sender) => this.handleMyroleCommand(sender), `To show only you your assigned role again`);
 
 		this.matchmaking_notifier = new MatchmakingNotifier(conn, BEEP_AT_THIS_COUNT);
 
@@ -270,9 +313,7 @@ export class KidnappersGameRoom extends AdministrationLogic {
 			`Please find the manual and the WHISPER commands to participate in the online description / profile ` +
 			`of the game's host '${this.conn.Player}'.`
 		);
-		character.Tell("Chat", `NOTE: Due to needing so many people to start a game, it is highly recommended to ` +
-			`use the matchmaking command to notify you of enough players via a BEEP, like in the other two game rooms.`
-		);
+		character.Tell("Chat", `NEWS: There is a new command !myrole to whisper you your role once more during a running game.`);
 	}
 
 	// Backup of the online description of the bot
@@ -321,6 +362,7 @@ Note: All these commands need to be whispered to the bot. Please be mindful that
 ► !joingame          To register as a new player, whisper '!joingame'
 ► !kick                  To start a vote to kick someone from the room: !kick [name] [reason]
 ► !listvotes           To list all currently running types of votes, e.g. kick votes
+► !myrole              To whisper you your assigned role again during a running game
 ► !skip                  To propose ending a day phase early, whisper '!skip'
 ► !start                  To start a new round, whisper '!start', after registering. Needs 5+ players
 ► !status               To get information about the running game, whisper '!status'
@@ -683,6 +725,8 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 				this.giveNightInstructions();
 			}
 
+		} else if (this.skip_day.has(sender)) {
+			sender.Tell("Whisper", 'GAME: You already have voted in favor of ending today early.');
 		} else {
 			sender.Tell("Whisper", 'GAME: You can only use this command during the day phase of a running game.');
 		}
@@ -757,6 +801,43 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 	handleSuspectCommand(msg: string, sender: API_Character) {
 		if (this.gameState === "waiting_on_day_activities" && this.club_members.has(sender)) {
 			this.handleSuspicion(msg.toLocaleLowerCase(), sender);
+		}
+	}
+
+	handleMyroleCommand(sender: API_Character) {
+
+		if (this.players.find(e => e === sender) === undefined) {
+			sender.Tell("Whisper", `GAME: You are not part of the currently running game as you did not yet register as a player.`);
+			return;
+		}
+
+		if (this.persistent_copy_of_kidnappers.size === 1 && this.persistent_copy_of_kidnappers.has(sender)) {
+			sender.Tell("Whisper", solo_kidnapper_intro);
+		} else if (this.persistent_copy_of_kidnappers.has(sender)) {
+			sender.Tell("Whisper", `GAME: You are one of the two kidnappers. You need to prevent everyone else ` +
+				`from finding out what you are doing at night. The kidnapper team consists of: ` +
+				`${Array.from(this.persistent_copy_of_kidnappers.values()).map(A => A.toString()).join(", ")}. ` +
+				`You can discuss your joint approach by whispering. Please be careful not to MISWHISPER!!`
+			);
+		} else if (this.maid === sender) {
+			sender.Tell("Whisper", maid_intro);
+		} else if (this.switch === sender) {
+			sender.Tell("Whisper", switch_intro);
+		} else if (this.fan === sender) {
+			sender.Tell("Whisper", fan_intro);
+		} else if (this.masochist === sender) {
+			sender.Tell("Whisper", masochist_intro);
+		} else if (this.stalker === sender) {
+			sender.Tell("Whisper", stalker_intro);
+		} else if (this.mistress === sender) {
+			sender.Tell("Whisper", mistress_intro);
+		} else if (this.club_members.has(sender)) {
+			sender.Tell("Whisper", `GAME: You are one of the club members. Your task is to observe and ask around, in order to ` +
+				`find out whether the story of anybody does not add up! If they are a likely kidnapper, it's best to tie them up tightly ` +
+				`during the day as fast as possible!`
+			);
+		} else {
+			sender.Tell("Whisper", `GAME: Please wait for the next game round to start in order to get a new role assignment.`);
 		}
 	}
 
@@ -1497,55 +1578,27 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 				);
 			}
 		} else if (this.active_config.kidnapper === 1) {
-			kidnappers_team[0].Tell("Whisper", `GAME: You are the kidnapper. You need to play smart to not be found out by the ` +
-				`club members, who want to stop your actions.`
-			);
+			kidnappers_team[0].Tell("Whisper", solo_kidnapper_intro);
 		} else {
 			logger.error(`Illegal number of kidnappers set: ${this.active_config.kidnapper}`);
 		}
 		if (this.maid !== null) {
-			this.maid.Tell("Whisper", `GAME: You are the shy maid no one really notices, mainly active at night. It is your decision when to ` +
-				`communicate that and things you learned to the other club members, since such a claim might make you a primary target for any ` +
-				`kidnapper. Wait too long and you might end up as nicely gagged and helpless package anyway~`
-			);
+			this.maid.Tell("Whisper", maid_intro);
 		}
 		if (this.switch !== null) {
-			this.switch.Tell("Whisper", `GAME: You are the switch, who is seen as 'just another subbie' by everyone else. ` +
-				`If by the end of the game, you and one kidnapper are the only two free participants left, your domme side is ` +
-				`able to easily suppress the kidnapper, since they were not expecting it, thus leading to a victory for the club members. ` +
-				`It is your decision if or when to communicate that, since such a claim will make you a primary target for any kidnapper. `
-			);
+			this.switch.Tell("Whisper", switch_intro);
 		}
 		if (this.fan !== null) {
-			this.fan.Tell("Whisper", `GAME: You are the fan, an avid admirer of the kidnappers, who really wants them to succeed by ` +
-				`by helping them to kidnap everyone and ultimately yourself. There is one problem however! The kidnappers never took notice of ` +
-				`you and you also have no idea who your so admired kidnappers are. Thus, your only chance is to secretly scheme against ` +
-				`the club members, without them finding out about your true intentions.\n[NOTE: You win when the kidnapper(s) win.]`
-			);
+			this.fan.Tell("Whisper", fan_intro);
 		}
 		if (this.masochist !== null) {
-			this.masochist.Tell("Whisper", `GAME: You are the masochist, a total bondage addict who wants nothing more ` +
-				`than to end up in strict bondage. You could care less about kidnappings and day suspicions, not necessarily picking any side, ` +
-				`but they are surely great opportunities to use for fulfilling your dark desire.` +
-				`\n[NOTE: You win when you are tied up when the game ends, independently of the kidnappers or club members winning.]`
-			);
+			this.masochist.Tell("Whisper", masochist_intro);
 		}
 		if (this.stalker !== null) {
-			this.stalker.Tell("Whisper", `GAME: You are the stalker, obsessively in love with a cute and shy maid you once saw ` +
-				`at a maid initiation. She seems to not be around during the day, though. Thus, you are spending each night trying to stalk ` +
-				`her. Your dream is to be in tight bondage together with her and therefore you secretly support the cause of the kidnappers, ` +
-				`who are trying to snatch away everyone. As a masochistic bondage addict, you just love the thought of seeing everyone ` +
-				`helplessly wiggling in tight, unforgiving distress. It is your decision when to communicate your hidden agenda as well as ` +
-				`the name of the maid, when you finally found her, since such a claim will have a huge impact on the behavior ` +
-				`of everyone else. Especially any kidnapper will surely know how to use you to their advantage.` +
-				`\n[NOTE: You win when the kidnapper(s) win.]`
-			);
+			this.stalker.Tell("Whisper", stalker_intro);
 		}
 		if (this.mistress !== null) {
-			this.mistress.Tell("Whisper", `GAME: You are a new mistress in the club. It is your decision when/if to communicate that to ` +
-				`the other club members and what you do at night, since revealing yourself might make you a primary target ` +
-				`for any kidnapper. But maybe that is your intention~`
-			);
+			this.mistress.Tell("Whisper", mistress_intro);
 		}
 
 		const oneKidnapper = `kidnapper was ${kidnappers_team[0]}`;
