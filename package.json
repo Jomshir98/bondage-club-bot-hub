@@ -22,10 +22,13 @@
   "dependencies": {
     "@types/lodash": "^4.14.170",
     "@types/node": "^14.14.35",
-    "bondage-club-bot-api": "file:../bondage-club-bot-api/bondage-club-bot-api-v0.1.1.tgz",
-    "lodash": "^4.17.20"
+    "bondage-club-bot-api": "file:../bc-headless/bondage-club-bot-api-v0.1.1.tgz",
+    "express": "^4.17.1",
+    "lodash": "^4.17.20",
+    "prom-client": "^13.1.0"
   },
   "devDependencies": {
+    "@types/express": "^4.17.12",
     "@typescript-eslint/eslint-plugin": "^4.26.0",
     "@typescript-eslint/parser": "^4.26.0",
     "eslint": "^7.28.0",

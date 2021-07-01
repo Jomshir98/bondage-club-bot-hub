@@ -5,6 +5,7 @@ import { KNOWN_TROLL_LIST, SUPERUSERS } from "./config";
 import { accounts } from "./secrets";
 
 import fsPromises from "fs/promises";
+import { initMetrics } from "./metrics";
 
 logConfig.logLevel = LogLevel.VERBOSE;
 
@@ -16,6 +17,8 @@ const defaultBotAppearance = JMod.JMod_importAppearanceBundle(
 );
 
 async function run() {
+	initMetrics(8013, "kidnappers");
+
 	conn = await Connect(...accounts[4]);
 
 	// @ts-ignore: dev

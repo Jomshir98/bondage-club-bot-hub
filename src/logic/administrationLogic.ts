@@ -1,4 +1,5 @@
 import { logger, LogicBase } from "bondage-club-bot-api";
+import promClient from "prom-client";
 
 import { SUPERUSERS } from "../config";
 
@@ -84,6 +85,18 @@ export class AdministrationLogic extends LogicBase {
 
 	private a_lastActivity: Map<API_Character, number> = new Map();
 	private a_inactivityDidWarn: WeakSet<API_Character> = new WeakSet();
+
+	// Metrics
+	private metric_players = new promClient.Gauge({
+		name: "hub_players_in_room",
+		help: "hub_players_in_room",
+		labelNames: ["roomName"] as const
+	});
+	private metric_commands = new promClient.Counter({
+		name: "hub_admin_commands_ran",
+		help: "hub_admin_commands_ran",
+		labelNames: ["roomName", "command"] as const
+	});
 
 	constructor(settings: Partial<IAdminLogicSettings>) {
 		super();
@@ -657,6 +670,16 @@ export class AdministrationLogic extends LogicBase {
 				const command = commandMatch[1].toLocaleLowerCase();
 				const args = commandMatch[2];
 				const commandInfo = this.a_commands.get(command);
+
+				if (commandInfo) {
+					this.metric_commands
+						.labels({
+							command,
+							roomName: event.Sender.chatRoom.Name
+						})
+						.inc();
+				}
+
 				if (!commandInfo) {
 					// Command not found
 					if (this.a_settings.catchUnknownCommands) {
@@ -735,6 +758,10 @@ export class AdministrationLogic extends LogicBase {
 		this.a_lastActivity.delete(event.character);
 		this.a_inactivityDidWarn.delete(event.character);
 
+		this.metric_players
+			.labels({ roomName: event.character.chatRoom.Name })
+			.set(event.character.chatRoom.characters.filter(c => !c.IsBot()).length);
+
 		return false;
 	}
 
@@ -761,6 +788,10 @@ export class AdministrationLogic extends LogicBase {
 		}
 
 		this.a_lastActivity.set(event.character, Date.now());
+
+		this.metric_players
+			.labels({ roomName: event.character.chatRoom.Name })
+			.set(event.character.chatRoom.characters.filter(c => !c.IsBot()).length);
 
 		return false;
 	}

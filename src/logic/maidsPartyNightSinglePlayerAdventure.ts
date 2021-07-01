@@ -1,4 +1,5 @@
 import { AssetGet, logger, BC_PermissionLevel, JMod } from "bondage-club-bot-api";
+import promClient from "prom-client";
 
 import { wait } from "../utils";
 import { LoggingLogic } from "./loggingLogic";
@@ -110,6 +111,22 @@ export class MaidsPartyNightSinglePlayerAdventure extends LoggingLogic {
 	/** the connectors of both bots used to act as NPCs in the scenario, 'conn' is the one that runs the scenario */
 	readonly conn: API_Connector;
 	readonly conn2: API_Connector;
+
+	// Metrics
+	private metric_players = new promClient.Gauge({
+		name: "hub_players_in_room",
+		help: "hub_players_in_room",
+		labelNames: ["roomName"] as const
+	});
+	private metric_started = new promClient.Counter({
+		name: "hub_maidspartynight_started",
+		help: "hub_maidspartynight_started"
+	});
+	private metric_endings = new promClient.Counter({
+		name: "hub_maidspartynight_reached_endings",
+		help: "hub_maidspartynight_reached_endings",
+		labelNames: ["ending"] as const
+	});
 
 	constructor(conn: API_Connector, conn2: API_Connector) {
 		super();
@@ -289,6 +306,11 @@ export class MaidsPartyNightSinglePlayerAdventure extends LoggingLogic {
 	protected async onCharacterEntered(connection: API_Connector, character: API_Character): Promise<void> {
 		if (character.IsBot()) return;
 		super.onCharacterEntered(connection, character);
+
+		this.metric_players
+			.labels({ roomName: character.chatRoom.Name })
+			.set(character.chatRoom.characters.filter(c => !c.IsBot()).length);
+
 		if (this.player === null && !connection.chatRoom.Admin.includes(character.MemberNumber)) {
 			await this.conn.ChatRoomUpdate({
 				Limit: 10,
@@ -336,6 +358,11 @@ export class MaidsPartyNightSinglePlayerAdventure extends LoggingLogic {
 	protected async onCharacterLeft(connection: API_Connector, character: API_Character, intentional: boolean): Promise<void> {
 		if (character.IsBot()) return;
 		super.onCharacterLeft(connection, character, intentional);
+
+		this.metric_players
+			.labels({ roomName: character.chatRoom.Name })
+			.set(character.chatRoom.characters.filter(c => !c.IsBot()).length);
+
 		if (this.player === character && (intentional || !this.started)) {
 			// TODO: this can only be reached via 'leave' or force DC, as the player cannot leave the locked room themself >>
 			// not ideal! - Wait for VIP system!
@@ -398,6 +425,7 @@ export class MaidsPartyNightSinglePlayerAdventure extends LoggingLogic {
 						`whos clothes are also changing.`
 					);
 					this.started = true;
+					this.metric_started.inc();
 					await wait(2500);
 					await this.toggleBotVisibility(true);
 					await wait(2000);
@@ -644,6 +672,7 @@ export class MaidsPartyNightSinglePlayerAdventure extends LoggingLogic {
 						`whether refusal was the best decision here.`
 					);
 					logger.alert(`Player ${sender.Name} (${sender.MemberNumber}) reached ending: Storage cleaning`);
+					this.metric_endings.labels({ ending: "Storage cleaning" }).inc();
 					this.playerGenericEnd(sender, false);
 					return;
 				} else {
@@ -703,6 +732,7 @@ export class MaidsPartyNightSinglePlayerAdventure extends LoggingLogic {
 						this.conn2.ChatRoomLeave();
 						this.changeBotAppearanceTo("trixie", this.conn);
 						logger.alert(`Player ${sender.Name} (${sender.MemberNumber}) reached ending: Head Maid punishment`);
+						this.metric_endings.labels({ ending: "Head Maid punishment" }).inc();
 						this.playerGenericEnd(sender, false);
 						return;
 					}
@@ -897,6 +927,7 @@ export class MaidsPartyNightSinglePlayerAdventure extends LoggingLogic {
 					);
 					// TODO: remove the end below when more story was added here
 					logger.alert(`Player ${sender.Name} (${sender.MemberNumber}) reached ending: Club lady - to be continued-`);
+					this.metric_endings.labels({ ending: "Club lady" }).inc();
 					this.playerGenericEnd(sender, true);
 					return;
 				} else {
@@ -1016,6 +1047,7 @@ export class MaidsPartyNightSinglePlayerAdventure extends LoggingLogic {
 		);
 		// TODO: this is the end for now, even though there is more content already available
 		logger.alert(`Player ${character.Name} (${character.MemberNumber}) reached ending: Club entrance`);
+		this.metric_endings.labels({ ending: "Club entrance" }).inc();
 		this.playerGenericEnd(character, true);
 		return;
 		// end of temporary sudden ending, remove up until here if more is available

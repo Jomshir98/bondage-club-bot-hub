@@ -1,4 +1,5 @@
 import { AssetGet, logger, BC_PermissionLevel } from "bondage-club-bot-api";
+import promClient from "prom-client";
 
 import { wait } from "../utils";
 import { AdministrationLogic } from "./administrationLogic";
@@ -267,6 +268,18 @@ export class KidnappersGameRoom extends AdministrationLogic {
 	private charTimer: Map<API_Character, ReturnType<typeof setTimeout>> = new Map();
 
 	readonly conn: API_Connector;
+
+	// Metrics
+	private metric_gameStarted = new promClient.Counter({
+		name: "hub_kidnappers_game_started",
+		help: "hub_kidnappers_game_started",
+		labelNames: ["playerCount"] as const
+	});
+	private metric_gameEnded = new promClient.Counter({
+		name: "hub_kidnappers_game_ended",
+		help: "hub_kidnappers_game_ended",
+		labelNames: ["winner"] as const
+	});
 
 	constructor(conn: API_Connector) {
 		super({inactivityKickEnabledOnlyBelowFreeSlotsCount: 6});
@@ -706,6 +719,9 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 				);
 			}
 			this.setAllRolesAndCommunicate();
+			this.metric_gameStarted
+				.labels({ playerCount: this.players.length })
+				.inc();
 			this.setGameState("day_1");
 		}
 	}
@@ -1724,6 +1740,8 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 			`If you need to leave, you can use !freeandleave to get untied and kicked.`
 		);
 
+		this.metric_gameEnded.labels({ winner: "kidnappers" }).inc();
+
 		this.setGameState("game_was_won");
 	}
 
@@ -1761,6 +1779,8 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 			`\nNote: The next game can be started in ${this.active_config.victoryDuration/1000} seconds. ` +
 			`If you need to leave, you can use !freeandleave to get untied and kicked.`
 		);
+
+		this.metric_gameEnded.labels({ winner: "clubMembers" }).inc();
 
 		this.setGameState("game_was_won");
 	}

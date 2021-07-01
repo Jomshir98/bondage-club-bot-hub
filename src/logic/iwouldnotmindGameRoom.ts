@@ -1,4 +1,5 @@
 import { AssetGet, logger } from "bondage-club-bot-api";
+import promClient from "prom-client";
 
 import { shuffleArray, wait } from "../utils";
 import { AdministrationLogic } from "./administrationLogic";
@@ -44,6 +45,12 @@ export class IwouldnotmindGameRoom extends AdministrationLogic {
 
 	readonly conn: API_Connector;
 
+	// Metrics
+	private metric_gameStarted = new promClient.Counter({
+		name: "hub_iwouldnotmind_game_started",
+		help: "hub_iwouldnotmind_game_started"
+	});
+
 	constructor(conn: API_Connector) {
 		super({inactivityKickEnabledOnlyBelowFreeSlotsCount: 5});
 		this.conn = conn;
@@ -53,6 +60,8 @@ export class IwouldnotmindGameRoom extends AdministrationLogic {
 		this.registerCommand("next", (connection, args, sender) => this.handleNextCommand(sender), `To start a new round after registering`);
 		this.registerCommand("pick", (connection, args, sender) => this.revealSelection(args, sender), null);
 		this.registerCommand("beepme", (connection, args, sender) => this.handleBeepmeCommand(sender), `To get beeped when enough players are online`);
+
+		this.metric_gameStarted.reset();
 
 		this.matchmaking_notifier = new MatchmakingNotifier(conn, BEEP_AT_THIS_COUNT);
 
@@ -480,6 +489,7 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 			this.whispers = [];
 			this.whisperer.clear();
 		} else if (state === "waiting_on_statement") {
+			this.metric_gameStarted.inc();
 			// 2m to give statement
 			this.turnTimer = Date.now() + 120_000;
 		} else if (state === "waiting_on_whispers") {

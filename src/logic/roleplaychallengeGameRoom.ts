@@ -1,4 +1,5 @@
 import { AssetGet, logger } from "bondage-club-bot-api";
+import promClient from "prom-client";
 
 import { wait } from "../utils";
 import { AdministrationLogic } from "./administrationLogic";
@@ -33,6 +34,7 @@ export class RoleplaychallengeGameRoom extends AdministrationLogic {
 	/** Last round's active players */
 	last_players: Set<API_Character> = new Set();
 	last_challenge: string = "none";
+	last_challenge_id: number = 0;
 	gameState: GameState = "game_not_started";
 	turnTimer: number = 0;
 	printedChallengeExtension: boolean = false;
@@ -51,6 +53,18 @@ export class RoleplaychallengeGameRoom extends AdministrationLogic {
 	private charTimer: Map<API_Character, ReturnType<typeof setTimeout>> = new Map();
 
 	readonly conn: API_Connector;
+
+	// Metrics
+	private metric_gameStarted = new promClient.Counter({
+		name: "hub_roleplaychallenge_game_started",
+		help: "hub_roleplaychallenge_game_started",
+		labelNames: ["challenge"] as const
+	});
+	private metric_gameExtended = new promClient.Counter({
+		name: "hub_roleplaychallenge_game_extended",
+		help: "hub_roleplaychallenge_game_extended",
+		labelNames: ["challenge"] as const
+	});
 
 	constructor(conn: API_Connector) {
 		super({inactivityKickEnabledOnlyBelowFreeSlotsCount: 5});
@@ -701,6 +715,9 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 				this.conn.SendMessage("Emote", `*GAME: The current role play challenge was successfully extended by another 10 mins.`);
 				this.playersVotingForChallengeExtension.clear();
 				this.printedChallengeExtension = false;
+				this.metric_gameExtended
+					.labels({ challenge: this.last_challenge_id })
+					.inc();
 				logger.alert("Challenge was extended by another 10 minutes.");
 			} else {
 				this.conn.SendMessage("Emote", `*GAME: ${sender} likes the ongoing roleplay and has used '!extend'. To prolong ` +
@@ -903,6 +920,7 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 		}
 		msg = msg + `.`;
 		this.last_challenge = msg;
+		this.last_challenge_id = index;
 
 		// change room background: if empty, pick all-backgrounds-array, else use generic function to pick random element from array
 		const name = this.challenges[index].room_background.length === 0 ?
@@ -922,6 +940,9 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 			// TODO: Idea: introduce voting system to select a new challenge and advertise it here
 			``
 		);
+		this.metric_gameStarted
+			.labels({ challenge: index })
+			.inc();
 		logger.alert(msg);
 	}
 

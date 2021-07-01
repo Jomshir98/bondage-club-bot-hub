@@ -1,4 +1,5 @@
 import { logger } from "bondage-club-bot-api";
+import promClient from "prom-client";
 
 export class MatchmakingNotifier {
 
@@ -14,6 +15,18 @@ export class MatchmakingNotifier {
 	get waitingPlayers(): number {
 		return this.matchmaking_list.size;
 	}
+
+	// Metrics
+	private metric_registered = new promClient.Counter({
+		name: "hub_matchmaking_registered",
+		help: "hub_matchmaking_registered",
+		labelNames: ["roomName"] as const
+	});
+	private metric_success = new promClient.Counter({
+		name: "hub_matchmaking_success",
+		help: "hub_matchmaking_success",
+		labelNames: ["roomName"] as const
+	});
 
 	constructor(connection: API_Connector, beepAtThisCount: number) {
 		this.connection = connection;
@@ -44,6 +57,9 @@ export class MatchmakingNotifier {
 
 		this.matchmaking_list.add(sender);
 		await this.cleanupOffline();
+		this.metric_registered
+			.labels({ roomName: sender.chatRoom.Name })
+			.inc();
 		logger.info(`${sender} was added to the matchmaking queue. There are now ${this.matchmaking_list.size} in it.`);
 		sender.Tell("Chat", `GAME: You are now on the 'matchmaking queue' for the game. There ${this.matchmaking_list.size > 1 ? `are` : `is`} ` +
 			`now ${this.matchmaking_list.size} in it. After ${this.beepAtThisCount} players are queued, ` +
@@ -85,6 +101,7 @@ export class MatchmakingNotifier {
 					this.connection.AccountBeep(M.MemberNumber, null, beepMsg);
 					this.connection.Player.FriendListRemove(M.MemberNumber);
 				});
+				this.metric_success.labels({ roomName: this.connection.chatRoom.Name }).inc();
 				logger.alert(`Successful matchmaking with ${this.matchmaking_list.size} on the list.`);
 				this.matchmaking_list.clear();
 				return true;
