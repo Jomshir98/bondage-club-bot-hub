@@ -18,7 +18,7 @@ interface Whisper {
 }
 
 /** The matchmaking queue count that triggers a beep message to everyone on it */
-const BEEP_AT_THIS_COUNT = 5;
+const BEEP_AT_THIS_COUNT = 4;
 
 export class IwouldnotmindGameRoom extends AdministrationLogic {
 	/** The registered players */

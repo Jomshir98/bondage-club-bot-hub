@@ -1,8 +1,8 @@
 
 //  ----------------------------------------------
 //   W  O  R  K            -----------------------
-//  -----------    I  N
-//                         P  R  O  G  R  E  S  S
+//                 I  N
+//  -----------            P  R  O  G  R  E  S  S
 //  ----------------------------------------------
 
 
@@ -53,7 +53,7 @@ const gameConfigurations: Record<configurationName, Readonly<gameConfig>> = {
 			players: 1,
 			mistress: 1,
 			m_willpower: 120,
-			m_dominance: 18,
+			m_dominance: 17,
 			dice_sides: 20,
 			turnDuration: 30_000,
 			victoryDuration: 60_000
@@ -63,7 +63,7 @@ const gameConfigurations: Record<configurationName, Readonly<gameConfig>> = {
 			players: 2,
 			mistress: 1,
 			m_willpower: 240,
-			m_dominance: 36,
+			m_dominance: 34,
 			dice_sides: 40,
 			turnDuration: 30_000,
 			victoryDuration: 60_000
@@ -73,7 +73,7 @@ const gameConfigurations: Record<configurationName, Readonly<gameConfig>> = {
 			players: 3,
 			mistress: 1,
 			m_willpower: 360,
-			m_dominance: 54,
+			m_dominance: 51,
 			dice_sides: 60,
 			turnDuration: 30_000,
 			victoryDuration: 60_000
@@ -83,7 +83,7 @@ const gameConfigurations: Record<configurationName, Readonly<gameConfig>> = {
 			players: 4,
 			mistress: 1,
 			m_willpower: 480,
-			m_dominance: 72,
+			m_dominance: 68,
 			dice_sides: 80,
 			turnDuration: 30_000,
 			victoryDuration: 60_000
@@ -108,6 +108,7 @@ const BEEP_AT_THIS_COUNT = 3;
 class Boss {
 	willpower: number = 0;
 	dominance: number = 0;
+	boss_stage: number = 1;
 }
 
 class Player {
@@ -348,16 +349,19 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 		}
 
 		let config: configurationName;
-		/** if (this.players.length < 7) {
-			config = "fiveOrSixPlayers";
-		} else if (this.players.length === 7) {
-			config = "sevenPlayers";
-		} else if (this.players.length === 8) {
-			config = "eightPlayers";
+		if (this.players.length === 1) {
+			config = "1player";
+		} else if (this.players.length === 2) {
+			config = "2players";
+		} else if (this.players.length === 3) {
+			config = "3players";
+		} else if (this.players.length === 4) {
+			config = "4players";
 		} else {
-			config = "ninePlayers";
+			logger.error("Illegal number of players.");
+			return;
 		}
-		this.setActiveConfigFromTemplate(config); */
+		this.setActiveConfigFromTemplate(config);
 		this.players.map(P => this.freeCharacterInItemSlots(P.character, listOfUsedItemGroups));
 		this.conn.SendMessage("Emote", `*GAME: It's on! The league started the event. It might be a good idea to take ` +
 			`today to get to know the other participants. Maybe one can already sense if someone only acts like an innocent ` +
@@ -415,8 +419,9 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 		} else {
 			starting_willpower = this.active_config.m_willpower;
 		}
-		if ((starting_willpower * 0.5) > this.mistress.willpower) {
+		if (this.mistress.boss_stage === 1 && (starting_willpower * 0.5) > this.mistress.willpower) {
 			this.mistress.dominance = this.active_config.m_dominance;
+			this.mistress.boss_stage = 2;
 			if (!simulation) {
 				// announce this event
 			}
@@ -443,7 +448,7 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 		// determine target of an action
 		let target: Player | null = null;
 		for (const player of this.players) {
-			if (player.loseCounter !== 0) {
+			if (player.loseCounter > 0) {
 				if (target === null) {
 					target = player;
 				} else {
@@ -455,43 +460,91 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 		// if everyone is tied up: mistress wins
 		if (target === null) {
 			// mistress wins
+			return false;
 		// if each player is at the starting value, meaning it is the first action of the game, select a random player
 		} else if (target.loseCounter === 7) {
 			const randomIndex = Math.floor(Math.random() * this.active_config.players);
 			target = this.players[randomIndex];
 		}
 
-		// if doActionThisTurn -> call doMistressAction() using target
+		if (doActionThisTurn && target !== null) {
+			this.doMistressAction(target, simulation);
+		}
 
 		// proceed to the next round / Note: maybe put this somewhere else
 		this.gameRound++;
+		return true;
 	}
 
-	doMistressAction() {
+	doMistressAction(target: Player, simulation: boolean = false) {
 		// determine the next type of stripping / restraint on the target player
 
 		// execute it
+		target.loseCounter = target.loseCounter - 1;
+		logger.info(`losecounter: ${target.loseCounter}`);
 	}
 
 	handlePlayerTurns() {
-		// for each player: handlePlayerTurn()
+		for (const player of this.players) {
+			this.handlePlayerTurn(player);
+		}
 	}
 
-	handlePlayerTurn() {
+	handlePlayerTurn(player: Player) {
 		// depending on the status effects on the player due to item effects, print them their command options
 
 	}
 
-	newHandleSimulateGameCommand() {
+	handleSimulateGameCommand(msg: string, sender: API_Character) {
 		// TODO: allow only admins to run this
+
+		const match = (/^([0-9]+)\s([0-9]+)\s([0-9]+)\s([0-9]+)$/i).exec(msg);
+		if (!match) {
+			sender.Tell("Whisper", `GAME: Bad format, expected four integer: var1 -> numberOfPlayers / var2 -> timesCorruptCommandPerPlayerPhase1 ` +
+						`/ var3 -> timesCorruptCommandPerPlayerPhase2 / var4 -> willpower.`
+			);
+			return;
+		}
 
 		// parse command: var1 -> numberOfPlayers / var2 -> timesCorruptCommandPerPlayerPhase1 / var3 -> timesCorruptCommandPerPlayerPhase2
 		//                var4 -> willpower
-		// set this.simulated_willpower to var4
+		const numberOfPlayers = Number.parseInt(match[1], 10);
+		const timesCorruptCommandPerPlayerPhase1 = Number.parseInt(match[2], 10);
+		const timesCorruptCommandPerPlayerPhase2 = Number.parseInt(match[3], 10);
+		const willpower = Number.parseInt(match[4], 10);
 
-		// this.mistress.willpower = willpower;
+		this.simulatedWillpower = willpower;
+
+		let config: configurationName;
+		if (numberOfPlayers === 1) {
+			config = "1player";
+		} else if (numberOfPlayers === 2) {
+			config = "2players";
+		} else if (numberOfPlayers === 3) {
+			config = "3players";
+		} else if (numberOfPlayers === 4) {
+			config = "4players";
+		} else {
+			logger.error("Illegal number of players.");
+			return;
+		}
+		this.setActiveConfigFromTemplate(config);
 
 		// call newSimulateOneGame() 100 times  (returns true or false for player win or loss)
+		// count win/loss and report
+		let player_wins: number = 0;
+		for (let i = 0; i < 1; i++) {
+			this.mistress.willpower = willpower;
+			this.mistress.dominance = this.active_config.m_dominance;
+			this.mistress.boss_stage = 1;
+			this.players = [];
+			this.gameRound = 1;
+			if (this.simulateOneGame(numberOfPlayers, timesCorruptCommandPerPlayerPhase1, timesCorruptCommandPerPlayerPhase2)) {
+				player_wins++;
+			}
+		}
+
+		this.conn.SendMessage("Emote", `*GAME: The players won ${player_wins} out of 1 games.`);
 	}
 
 	/**
@@ -500,18 +553,61 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 	 * @param timesCorruptCommandPerPlayerPhase1 How many times each player uses the corrupt command before switching to the subdue one
 	 * @param timesCorruptCommandPerPlayerPhase2 How many times each player uses the corrupt command before switching to the subdue one after
 	 *                                           mistress regenerated dominance
-	 * @param willpower The number of willpower of the mistress
 	 */
-	newSimulateOneGame() {
-		// while mistress willpower over 0:
+	simulateOneGame(numberOfPlayers: number, timesCorruptCommandPerPlayerPhase1: number, timesCorruptCommandPerPlayerPhase2: number) {
+		// create all Players
+		for (let i = 0; i < numberOfPlayers; i++) {
+			const player = new Player(this.conn.Player);
+			logger.info(`new losecounter: ${player.loseCounter}`);
+			this.players.push(player);
+		}
 
-		// depending on number of players and turn timer: do the player action(s)
+		while (this.mistress.willpower > 0) {
+			let corruptTimes: number = 1;
+			if (this.mistress.boss_stage === 1) {
+				corruptTimes = timesCorruptCommandPerPlayerPhase1;
+			} else {
+				corruptTimes = timesCorruptCommandPerPlayerPhase2;
+			}
+			let loseCondition: number = 0;
+			// depending on number of players and turn timer: do the player action(s)
+			for (const player of this.players) {
+				// player is too much tied up
+				if (player.loseCounter === 0) {
+					loseCondition++;
+					logger.info(`lose condition after incrementing: ${loseCondition}`);
+					continue;
+				}
+				// TEMP solution without item effects, except above
+				if (this.gameRound <= corruptTimes && player.loseCounter > 2) {
+					this.mistress.dominance--;
+					logger.info(`Reduced dominance to: ${this.mistress.dominance}`);
+				} else if (player.loseCounter > 1) {
+					const roll = this.throwDice(this.active_config.dice_sides);
+					if (roll > this.mistress.dominance) {
+						this.mistress.willpower = this.mistress.willpower - (roll - this.mistress.dominance);
+					}
+					logger.info(`willpower: ${this.mistress.willpower} - - - - - - - roll was: ${roll}`);
+				}
+			}
+			// if all players can no longer make a turn, return false
+			if (loseCondition === numberOfPlayers) {
+				return false;
+			}
 
-		// follow up by a simulated mistress turn and action
-
-		// if all players can no longer make a turn, return false
+			// follow up by a simulated mistress turn and action
+			const old_dominance = this.mistress.dominance;
+			this.handleMistressTurn(true);
+			// dominance regenerated, marking the start of phase 2
+			if (this.mistress.dominance > old_dominance) {
+				logger.info(`phase: ${this.mistress.boss_stage}`);
+				this.gameRound = 1;
+			}
+		}
+		return true;
 	}
 
+	/*
 	handleSimulateGameCommand(msg: string, sender: API_Character) {
 		const match = (/^([0-9]+)$/i).exec(msg);
 		if (!match) {
@@ -545,7 +641,7 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 			}
 		}
 		return damage;
-	}
+	} */
 
 	// player turn
 	// p-action A
@@ -557,8 +653,8 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 	// mistress action
 
 	// throw dice
-	throwDice() {
-		return Math.floor(Math.random() * 20) + 1;
+	throwDice(sides: number) {
+		return Math.floor(Math.random() * sides) + 1;
 	}
 
 	private Tick() {
