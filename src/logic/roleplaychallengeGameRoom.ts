@@ -654,6 +654,10 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 		this.conn.SendMessage("Emote", `*GAME: ${sender} was registered as an active player.`);
 
 		this.beepSuccess = await this.matchmaking_notifier.notifyPlayersOfEnoughInterest(Array.from(this.players));
+		void this.conn.ChatRoomUpdate({
+			Description: `[BOT] scripted multiplayer gameroom | manual in bot profile | ${this.matchmaking_notifier.waitingPlayers} queued`,
+			Background: "CollegeTheater"
+		});
 		if (this.beepSuccess) {
 			sender.Tell("Chat", `GAME: You joining the game triggered a matchmaking beep to ${BEEP_AT_THIS_COUNT} players in ` +
 				`the waiting queue just now. Please stay around until everyone who was beeped will join the room within the next ` +
@@ -698,6 +702,10 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 			);
 		} else if (this.gameState === "game_not_started" || this.gameState === "waiting_on_next_turn") {
 			await this.matchmaking_notifier.addPlayerToTheMatchmakingQueue(sender);
+			void this.conn.ChatRoomUpdate({
+				Description: `[BOT] scripted multiplayer gameroom | manual in bot profile | ${this.matchmaking_notifier.waitingPlayers} queued`,
+				Background: "CollegeTheater"
+			});
 			this.beepSuccess =
 				await this.matchmaking_notifier.notifyPlayersOfEnoughInterest(Array.from(this.players));
 		} else {

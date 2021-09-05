@@ -48,7 +48,9 @@ interface IAdminVoteData {
 	description: string;
 	votes: Map<API_Character, boolean | null>;
 	endTime: number;
+	reportProgress: boolean;
 	progress?: (data: IAdminVoteResults) => boolean;
+	endHook?: (name: string) => void;
 	resolve: (results: IAdminVoteResults) => void;
 }
 
@@ -79,6 +81,7 @@ export class AdministrationLogic extends LogicBase {
 	private a_SUCommands: Map<string, AdminCommandHandlerSu> = new Map();
 	private a_pendingVotes: Map<string, IAdminVoteData> = new Map();
 
+	private a_pendingKickVotes: Map<number, string> = new Map();
 	private a_kickProtection: WeakMap<API_Character, number> = new WeakMap();
 	private a_banAvailability: Map<number, number> = new Map();
 	private a_notBanComfirmation: WeakMap<API_Character, number> = new WeakMap();
@@ -351,7 +354,10 @@ export class AdministrationLogic extends LogicBase {
 		participants?: API_Character[];
 		autoVoteYes?: API_Character[];
 		autoVoteNo?: API_Character[];
+		reportProgress?: boolean;
 		progress?: (data: IAdminVoteResults) => boolean;
+		startHook?: (name: string) => void;
+		endHook?: (name: string) => void;
 	} = {}): Promise<IAdminVoteResults> {
 		let newName = name;
 		for (let i = 2; this.a_pendingVotes.has(newName); i++) {
@@ -364,7 +370,9 @@ export class AdministrationLogic extends LogicBase {
 				description: options.description || "",
 				endTime: Date.now() + time * 1000,
 				votes: new Map(participants.map(p => [p, options.autoVoteYes?.includes(p) ? true : options.autoVoteNo?.includes(p) ? false : null])),
+				reportProgress: !!options.reportProgress,
 				progress: options.progress,
+				endHook: options.endHook,
 				resolve
 			};
 			this.a_pendingVotes.set(newName, vote);
@@ -384,6 +392,9 @@ export class AdministrationLogic extends LogicBase {
 						`\n===================================`
 					);
 				}
+			}
+			if (options.startHook) {
+				options.startHook(newName);
 			}
 		});
 	}
@@ -408,9 +419,25 @@ export class AdministrationLogic extends LogicBase {
 	}
 
 	private a_CharacterVote(vote: boolean, connection: API_Connector, args: string, sender: API_Character) {
+		if (!args.trim()) {
+			const votes = Array.from(this.a_pendingVotes.entries()).filter(i => i[1].votes.has(sender));
+			if (votes.length === 0) {
+				sender.Tell("Whisper", "There are currently no active votes you can vote on");
+			} if (votes.length === 1) {
+				args = votes[0][0];
+			} else {
+				sender.Tell(
+					"Whisper",
+					"There are multiple ongoing votes. Please use one of the following to select which vote you want to vote on:\n" +
+					votes.map(i => `!${vote ? "yes" : "no"} ${i[0]}`).join("\n")
+				);
+				return;
+			}
+		}
 		const voteData = this.a_pendingVotes.get(args.trim());
 		if (!voteData) {
-			sender.Tell("Whisper", "No such vote found. To see currently ongoing votes, use '!listvotes'");
+			sender.Tell("Whisper", "No such vote found. To see currently ongoing votes, use '!listvotes'\n" +
+				"You have to use the vote identifier that was shown to you when the vote was announced after your command, such as '!yes 12345' / '!no 12345'. Just '!yes' is not working.");
 			return;
 		}
 		if (!voteData.votes.has(sender)) {
@@ -425,14 +452,17 @@ export class AdministrationLogic extends LogicBase {
 		voteData.votes.set(sender, vote);
 		sender.Tell("Whisper", "Vote accepted");
 		let end = false;
+		const results = this.a_makeVoteResults(voteData);
 		if (voteData.progress) {
-			end = voteData.progress(this.a_makeVoteResults(voteData));
+			end = voteData.progress(results);
 		}
 		if (!end && Array.from(voteData.votes.values()).every(v => v !== null)) {
 			end = true;
 		}
 		if (end) {
 			this.a_endVote(voteData);
+		} else if (voteData.reportProgress) {
+			connection.SendMessage("Chat", `Vote "${voteData.name}" update:\nYes: ${results.yes}  No: ${results.no}`);
 		}
 	}
 
@@ -457,6 +487,9 @@ export class AdministrationLogic extends LogicBase {
 	private a_endVote(vote: IAdminVoteData) {
 		if (!this.a_pendingVotes.delete(vote.name)) {
 			throw new Error(`Attempt to end non-pending vote "${vote.name}"`);
+		}
+		if (vote.endHook) {
+			vote.endHook(vote.name);
 		}
 		vote.resolve(this.a_makeVoteResults(vote));
 	}
@@ -509,6 +542,16 @@ export class AdministrationLogic extends LogicBase {
 			return;
 		}
 
+		const existingVote = this.a_pendingKickVotes.get(target.MemberNumber);
+		if (existingVote !== undefined) {
+			sender.Tell(
+				"Whisper",
+				`There already is pending vote against this player. Please use one of the following to vote:\n` +
+				`!yes ${existingVote}\n!no ${existingVote}`
+			);
+			return;
+		}
+
 		const protectedUntil = this.a_kickProtection.get(target);
 		if (protectedUntil != null && protectedUntil > Date.now()) {
 			sender.Tell(
@@ -549,13 +592,22 @@ export class AdministrationLogic extends LogicBase {
 				`Reason: ${reason}`,
 			autoVoteYes: [sender],
 			autoVoteNo: [target],
-			progress: ({ yes, no, didNotVote }) => yes > no + didNotVote || no >= yes + didNotVote
+			reportProgress: true,
+			progress: ({ yes, no, didNotVote }) => yes > no + didNotVote || no >= yes + didNotVote,
+			startHook: name => {
+				logger.alert(`${this.a_LogHeader(connection)} Vote to ${ban ? "ban" : "kick"} ${target} started by ${sender} (vote id: ${name})`);
+				this.a_pendingKickVotes.set(target.MemberNumber, name);
+			},
+			endHook: () => {
+				this.a_pendingKickVotes.delete(target.MemberNumber);
+			}
 		}).then(result => {
 			if (target.IsRoomAdmin()) {
 				// Silently fail kick vote, if target became admin
 				return;
 			}
-			if (result.yes > result.no + result.didNotVote) {
+			logger.alert(`${this.a_LogHeader(connection)} Vote to ${ban ? "ban" : "kick"} ${target} (vote id: ${result.name}) ended with result Y: ${result.yes}  N: ${result.no}  DNV: ${result.didNotVote}`);
+			if (result.yes > result.no + Math.floor(result.didNotVote/2)) {
 				connection.SendMessage("Chat",
 					`Player ${target} ${ban ? "ban" : "kick"} vote passed.\n` +
 					`Yes: ${result.yes}  No: ${result.no}  Did not vote: ${result.didNotVote}`
@@ -647,7 +699,7 @@ export class AdministrationLogic extends LogicBase {
 			if (event.message.Type !== "Hidden") {
 				const msg = `${this.a_LogHeader(event.connection)} Message ${event.message.Type} ` +
 					`from ${event.Sender.Name} (${event.Sender.MemberNumber}): ` +
-					`${event.message.Content} ${dict}`;
+					`${event.message.Content}${dict}`;
 				if (event.Sender.IsBot() || event.message.Type === "Action" && ["ActionUse", "ActionRemove"].includes(event.message.Content)) {
 					logger.debug(msg);
 				} else if (["Chat", "Emote", "Whisper"].includes(event.message.Type)) {
@@ -880,6 +932,23 @@ export class AdministrationLogic extends LogicBase {
 		return false;
 	}
 
+	private a_onBotEvent(connection: API_Connector, event: AnyBotEvent): boolean {
+		if (event.name === "Message" && this.a_settings.log) {
+			const dict = event.Dictionary == null ? "" : `; dict: ${JSON.stringify(event.Dictionary)}`;
+			const tc = event.Target !== null && connection.chatRoom.characters.find(c => c.MemberNumber === event.Target);
+			const target = event.Target === null ? "" : `to ${tc || event.Target} `;
+			if (event.Type !== "Hidden") {
+				const msg = `${this.a_LogHeader(connection)} Bot message ${event.Type} ` +
+					target +
+					`: ` +
+					`${event.Content}${dict}`;
+				logger.debug(msg);
+			}
+		}
+
+		return false;
+	}
+
 	private a_processEvent(event: AnyLogicEvent): boolean {
 		if (event.name === "Message") {
 			return this.a_onMessage(event);
@@ -895,6 +964,8 @@ export class AdministrationLogic extends LogicBase {
 			return this.a_onCharacterEvent(event.connection, event.event);
 		} else if (event.name === "Beep") {
 			return this.a_onBeep(event);
+		} else if (event.name === "BotEvent") {
+			return this.a_onBotEvent(event.connection, event.event);
 		}
 		return false;
 	}

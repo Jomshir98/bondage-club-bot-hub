@@ -304,7 +304,7 @@ export class KidnappersGameRoom extends AdministrationLogic {
 
 		this.tickTimer = setInterval(this.Tick.bind(this), 1000);
 		this.setActiveConfigFromTemplate("fiveOrSixPlayers");
-		this.setGameState("game_not_started");
+		this.setGameState("game_not_started", false);
 	}
 
 	active_config!: gameConfig;
@@ -584,6 +584,10 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 				this.players.splice(index, 1);
 				if (this.players.length === 0) {
 					this.setGameState("game_not_started");
+					void this.conn.ChatRoomUpdate({
+						Description: `[BOT] scripted multiplayer gameroom | manual in bot profile | ${this.matchmaking_notifier.waitingPlayers} queued`,
+						Background: "MainHall"
+					});
 				}
 			}
 			this.resolvePlayerRemovals(character);
@@ -652,6 +656,10 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 		this.conn.SendMessage("Emote", `*GAME: ${sender} was registered as an active player.`);
 
 		this.beepSuccess = await this.matchmaking_notifier.notifyPlayersOfEnoughInterest(this.players);
+		void this.conn.ChatRoomUpdate({
+			Description: `[BOT] scripted multiplayer gameroom | manual in bot profile | ${this.matchmaking_notifier.waitingPlayers} queued`,
+			Background: "MainHall"
+		});
 		if (this.beepSuccess) {
 			sender.Tell("Chat", `GAME: You joining the game triggered a matchmaking beep to ${BEEP_AT_THIS_COUNT} players in ` +
 				`the waiting queue just now. Please stay around until everyone who was beeped will join the room within the next ` +
@@ -698,6 +706,9 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 			} else {
 				config = "ninePlayers";
 			}
+			void this.conn.ChatRoomUpdate({
+				Description: `[BOT] scripted multiplayer gameroom | manual in bot profile | PLAYING`
+			});
 			this.setActiveConfigFromTemplate(config);
 			this.players.map(P => this.freePlayerInItemSlots(P, listOfUsedItemGroups));
 			this.conn.SendMessage("Emote", `*GAME: It's on! The league started the event. It might be a good idea to take ` +
@@ -756,6 +767,10 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 			);
 		} else if (this.gameState === "game_not_started" || this.gameState === "game_was_won") {
 			await this.matchmaking_notifier.addPlayerToTheMatchmakingQueue(sender);
+			void this.conn.ChatRoomUpdate({
+				Description: `[BOT] scripted multiplayer gameroom | manual in bot profile | ${this.matchmaking_notifier.waitingPlayers} queued`,
+				Background: "MainHall"
+			});
 			this.beepSuccess =
 				await this.matchmaking_notifier.notifyPlayersOfEnoughInterest(this.players);
 		} else {
@@ -1352,14 +1367,19 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 		}
 	}
 
-	private setGameState(state: GameState) {
+	private setGameState(state: GameState, updateRoom: boolean = true) {
 		let changeTimer: boolean = true;
 		if (this.gameState === "waiting_on_trial_votes") {
 			changeTimer = false;
 		}
 		this.gameState = state;
 		if (state === "game_not_started") {
-			this.changeRoomBackgroundTo("MainHall");
+			if (updateRoom) {
+				void this.conn.ChatRoomUpdate({
+					Description: `[BOT] scripted multiplayer gameroom | manual in bot profile | READY`,
+					Background: "MainHall"
+				});
+			}
 			this.kidnappers.clear();
 			this.persistent_copy_of_kidnappers.clear();
 			this.club_members.clear();
@@ -1382,15 +1402,21 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 			this.roleWarnings.clear();
 			this.the_accused = null;
 		} else if (state === "day_1") {
-			this.changeRoomBackgroundTo("KidnapLeague");
+			if (updateRoom) {
+				this.changeRoomBackgroundTo("KidnapLeague");
+			}
 			// default: 3m for introductions
 			this.turnTimer = Date.now() + this.active_config.firstDayDuration;
 		} else if (state === "night_1") {
-			this.changeRoomBackgroundTo("Boudoir");
+			if (updateRoom) {
+				this.changeRoomBackgroundTo("Boudoir");
+			}
 			// default: 1.5m for all night activties
 			this.turnTimer = Date.now() + this.active_config.firstNightDuration;
 		} else if (state === "waiting_on_night_activities") {
-			this.changeRoomBackgroundTo("Boudoir");
+			if (updateRoom) {
+				this.changeRoomBackgroundTo("Boudoir");
+			}
 			// default: 1.5m for all night activties
 			this.turnTimer = Date.now() + this.active_config.nightDuration;
 			this.guilty_votes.clear();
@@ -1400,7 +1426,9 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 			this.dayTimerWarn = false;
 			this.the_accused = null;
 		} else if (state === "waiting_on_day_activities") {
-			this.changeRoomBackgroundTo("KidnapLeague");
+			if (updateRoom) {
+				this.changeRoomBackgroundTo("KidnapLeague");
+			}
 			// default: 15m for all day activities
 			if (changeTimer) {
 				this.turnTimer = Date.now() + this.active_config.dayDuration;
@@ -1425,6 +1453,11 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 			}
 		} else if (state === "game_was_won") {
 			// default: 1m before the next game can be started
+			if (updateRoom) {
+				void this.conn.ChatRoomUpdate({
+					Description: `[BOT] scripted multiplayer gameroom | manual in bot profile | READY`
+				});
+			}
 			this.turnTimer = Date.now() + this.active_config.victoryDuration;
 		} else {
 			logger.error("Bad state", state);

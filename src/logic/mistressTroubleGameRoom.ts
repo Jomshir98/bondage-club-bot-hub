@@ -173,7 +173,7 @@ export class MistressTroubleGameRoom extends AdministrationLogic {
 
 		this.tickTimer = setInterval(this.Tick.bind(this), 1000);
 		this.setActiveConfigFromTemplate("1player");
-		this.setGameState("game_not_started");
+		this.setGameState("game_not_started", false);
 
 		this.mistress.willpower = this.active_config.m_willpower;
 		this.mistress.dominance = this.active_config.m_dominance;
@@ -724,11 +724,13 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 		}
 	}
 
-	private setGameState(state: GameState) {
+	private setGameState(state: GameState, updateRoom: boolean = true) {
 
 		this.gameState = state;
 		if (state === "game_not_started") {
-			this.changeRoomBackgroundTo("MainHall");
+			if (updateRoom) {
+				this.changeRoomBackgroundTo("MainHall");
+			}
 			// this.chosen_players.clear();
 		} else if (state === "player_phase") {
 			// default: 30sec

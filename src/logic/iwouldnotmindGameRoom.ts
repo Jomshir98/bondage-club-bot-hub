@@ -10,7 +10,8 @@ type GameState =
 	| "waiting_on_next_turn"
 	| "waiting_on_statement"
 	| "waiting_on_whispers"
-	| "waiting_on_tease_selection";
+	| "waiting_on_tease_selection"
+	| "waiting_on_reveal";
 
 interface Whisper {
 	character: API_Character;
@@ -66,7 +67,7 @@ export class IwouldnotmindGameRoom extends AdministrationLogic {
 		this.matchmaking_notifier = new MatchmakingNotifier(conn, BEEP_AT_THIS_COUNT);
 
 		this.tickTimer = setInterval(this.Tick.bind(this), 1000);
-		this.setGameState("game_not_started");
+		this.setGameState("game_not_started", false);
 	}
 
 	/**
@@ -301,6 +302,8 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 		}
 		const i = Number.parseInt(msg, 10) - 1;
 		if (Number.isInteger(i) && i >= 0 && i < this.whispers.length) {
+			// adding special state so the player cannot time out between pick command and reveal
+			this.setGameState("waiting_on_reveal");
 			const picked = this.whispers[i];
 			this.conn.SendMessage("Emote", `*GAME: ${this.active_player.Name} chose:\n` +
 				`${picked.whisper}`
@@ -345,6 +348,9 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 		this.conn.SendMessage("Emote", `*GAME: ${sender} was registered as an active player.`);
 
 		this.beepSuccess = await this.matchmaking_notifier.notifyPlayersOfEnoughInterest(this.players);
+		void this.conn.ChatRoomUpdate({
+			Description: `[BOT] scripted multiplayer gameroom | manual in bot profile | ${this.matchmaking_notifier.waitingPlayers} queued`
+		});
 		if (this.beepSuccess) {
 			sender.Tell("Chat", `GAME: You joining the game triggered a matchmaking beep to ${BEEP_AT_THIS_COUNT} players in ` +
 				`the waiting queue just now. Please stay around until everyone who was beeped will join the room within the next ` +
@@ -391,6 +397,9 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 			);
 		} else if (this.gameState === "game_not_started" || this.gameState === "waiting_on_next_turn") {
 			await this.matchmaking_notifier.addPlayerToTheMatchmakingQueue(sender);
+			void this.conn.ChatRoomUpdate({
+				Description: `[BOT] scripted multiplayer gameroom | manual in bot profile | ${this.matchmaking_notifier.waitingPlayers} queued`
+			});
 			this.beepSuccess =
 				await this.matchmaking_notifier.notifyPlayersOfEnoughInterest(this.players);
 		} else {
@@ -412,7 +421,7 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 			this.blockMatchmakingJoin = false;
 		}
 
-		if (this.gameState === "game_not_started" || this.gameState === "waiting_on_next_turn") return;
+		if (this.gameState === "game_not_started" || this.gameState === "waiting_on_next_turn" || this.gameState === "waiting_on_reveal") return;
 
 		if (now >= this.turnTimer) {
 			if (this.gameState === "waiting_on_statement") {
@@ -471,6 +480,8 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 			} else if (this.gameState === "waiting_on_tease_selection") {
 				text = tickAlternateText ? `Waiting for\nselection` : `${timeLeftString}\nleft`;
 				textColor = timeLeft < 30 ? red : green;
+			} else if (this.gameState === "waiting_on_reveal") {
+				text = "*drumroll*";
 			} else if (this.gameState === "waiting_on_whispers") {
 				text = tickAlternateText ? `Waiting for\n${this.whisperer.size} whisper` + (this.whisperer.size > 1 ? "s" : "") : `${timeLeftString}\nleft`;
 				textColor = timeLeft < 60 ? red : green;
@@ -482,9 +493,15 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 		}
 	}
 
-	private setGameState(state: GameState) {
+	private setGameState(state: GameState, updateRoom: boolean = true) {
+		logger.debug(`[I would not mind] Change gamestate: ${this.gameState}->${state}`);
 		this.gameState = state;
 		if (state === "game_not_started") {
+			if (updateRoom) {
+				void this.conn.ChatRoomUpdate({
+					Description: `[BOT] scripted multiplayer gameroom | manual in bot profile | READY`
+				});
+			}
 			this.active_player = null;
 			this.whispers = [];
 			this.whisperer.clear();
@@ -499,8 +516,10 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 			this.whispers = [];
 			this.whisperer.clear();
 		} else if (state === "waiting_on_tease_selection") {
-			// 2m to select tease
-			this.turnTimer = Date.now() + 120_000;
+			// 2.5m to select tease
+			this.turnTimer = Date.now() + 150_000;
+		} else if (state === "waiting_on_reveal") {
+			// nothing
 		} else {
 			logger.error("Bad state", state);
 		}
