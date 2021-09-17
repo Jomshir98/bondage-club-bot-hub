@@ -1,4 +1,4 @@
-import { logger, LogicBase } from "bondage-club-bot-api";
+import { logConfig, logger, LogicBase } from "bondage-club-bot-api";
 import promClient from "prom-client";
 
 import { SUPERUSERS } from "../config";
@@ -104,7 +104,7 @@ export class AdministrationLogic extends LogicBase {
 	constructor(settings: Partial<IAdminLogicSettings>) {
 		super();
 		Object.assign(this.a_settings, settings);
-		logger.onfatal(this.destroy.bind(this));
+		logConfig.onFatal.push(this.destroy.bind(this));
 		this.registerCommand("help", (connection, args, sender) => this.on_Help(sender), "Shows this list of commands");
 		this.registerCommand("?", (connection, args, sender) => this.on_Help(sender), null);
 

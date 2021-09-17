@@ -1,13 +1,22 @@
-import { AssetGet, BC_PermissionLevel, Connect, Init, JMod, logConfig, logger, LogLevel } from "bondage-club-bot-api";
+import { AddFileOutput, AssetGet, BC_PermissionLevel, Connect, Init, JMod, logConfig, logger, LogLevel, SetConsoleOutput } from "bondage-club-bot-api";
 
 import { MistressTroubleGameRoom } from "./logic/mistressTroubleGameRoom";
 import { KNOWN_TROLL_LIST, SUPERUSERS } from "./config";
 import { accounts } from "./secrets";
 
-import fsPromises from "fs/promises";
+import fs from "fs";
 import { initMetrics } from "./metrics";
 
-logConfig.logLevel = LogLevel.VERBOSE;
+SetConsoleOutput(LogLevel.VERBOSE);
+
+const time = new Date();
+const timestring = `${time.getFullYear() % 100}${(time.getMonth() + 1).toString().padStart(2, "0")}${time.getDate().toString().padStart(2, "0")}_` +
+	`${time.getHours().toString().padStart(2, "0")}${time.getMinutes().toString().padStart(2, "0")}`;
+const logPrefix = `${timestring}_${process.pid}`;
+
+fs.mkdirSync("./data/logs/gameroom4", { recursive: true });
+AddFileOutput(`./data/logs/gameroom4/${logPrefix}_debug.log`, false, LogLevel.DEBUG);
+AddFileOutput(`./data/logs/gameroom4/${logPrefix}_error.log`, true, LogLevel.ALERT);
 
 let conn: API_Connector | null = null;
 let testLogic: MistressTroubleGameRoom | null = null;
@@ -59,18 +68,7 @@ async function run() {
 	logger.alert("Ready!");
 }
 
-const time = new Date();
-const timestring = `${time.getFullYear() % 100}${(time.getMonth() + 1).toString().padStart(2, "0")}${time.getDate().toString().padStart(2, "0")}_` +
-	`${time.getHours().toString().padStart(2, "0")}${time.getMinutes().toString().padStart(2, "0")}`;
-const logPrefix = `${timestring}_${process.pid}`;
-
-fsPromises
-	.mkdir("./data/logs/gameroom4", { recursive: true })
-	.then(() => fsPromises.open(`./data/logs/gameroom4/${logPrefix}_debug.log`, "w"))
-	.then(log => logger.addFileOutput(LogLevel.DEBUG, log))
-	.then(() => fsPromises.open(`./data/logs/gameroom4/${logPrefix}_error.log`, "as"))
-	.then(log => logger.addFileOutput(LogLevel.ALERT, log))
-	.then(Init)
+Init()
 	.then(run, err => {
 		logger.fatal("Asset loading rejected:", err);
 	})
@@ -78,7 +76,7 @@ fsPromises
 		logger.fatal("Error while running:", err);
 	});
 
-logger.onfatal(() => {
+logConfig.onFatal.push(() => {
 	conn?.disconnect();
 	conn = null;
 	testLogic?.destroy();

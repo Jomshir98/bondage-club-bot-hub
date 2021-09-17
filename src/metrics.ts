@@ -1,4 +1,4 @@
-import { logger } from "bondage-club-bot-api";
+import { logConfig, logger } from "bondage-club-bot-api";
 
 import express from "express";
 import http from "http";
@@ -27,7 +27,7 @@ export function initMetrics(port: number, label: string) {
 		logger.info("Metrics server ready!");
 	});
 
-	logger.onfatal(() => {
+	logConfig.onFatal.push(() => {
 		server.close(() => {
 			logger.debug("Metrics server closed");
 		});
