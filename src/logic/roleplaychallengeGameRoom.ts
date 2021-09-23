@@ -513,7 +513,7 @@ Examples of how freely challenges can be written
 --------------------------------------------------
 • {player1} is a {trait} club member wanting to complain to {player2}, who is a {trait} <club maid|mistress>, about <the selection of toys in the club|loud noises from the other guests in the next room>.
 
-• As 'The Great Houdini', {player1} is well known in the club, always attracting a crowd. This evening, she is once more entertaining the audience with her kinky magic show, asking for volunteers for the the final trick. In the end, she picks {player2}, a {trait} {role}, and {player2}, a {trait} {role}.
+• As 'The Great Houdini', {player1} is well known in the club, always attracting a crowd. This evening, she is once more entertaining the audience with her kinky magic show, asking for volunteers for the the final trick. In the end, she picks {player2}, a {trait} {role}, and {player3}, a {trait} {role}.
 
 • The asylum is a place of many kinky rumours. Today, the {trait} <reporter|lawyer> {player1} was visiting due to a job assignment there, but <got lost on her way out|lost her visiting permit>. She is spotted by the two nurses {player2} and {player3}, the latter one behaving very {trait}.
 
@@ -964,7 +964,11 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 				logger.warning(`Failed to move player ${player}:`, error);
 			}
 		}
-		await this.conn.Player.MoveToPos(pos);
+		try {
+			await this.conn.Player.MoveToPos(pos);
+		} catch (error) {
+			logger.warning(`Failed to move bot:`, error);
+		}
 	}
 
 	getRandomElementFromArray(list: string[]) {
