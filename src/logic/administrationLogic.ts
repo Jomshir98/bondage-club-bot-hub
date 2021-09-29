@@ -54,12 +54,24 @@ interface IAdminVoteData {
 	resolve: (results: IAdminVoteResults) => void;
 }
 
+interface IAdminGuardData {
+	points: number;
+	log: [string, number][];
+}
+
 // Global config
 const KICKVOTE_DURATION: number = 300;
 const KICKVOTE_PROTECTION_DURATION: number = 360;
 const KICKVOTE_BAN_AVAILABILITY: number = 3600;
 // TODO: maybe refactor those three above also in the more clear format e.g. 60 * 60 * 1000
 // to be consistent with the style few lines below and not add the *1000 only in the function
+
+/** Per-second decay of guard points */
+const ROOMGUARD_POINT_DECAY: number = 0.4;
+const ROOMGUARD_CHAT_WIDTH: number = 60;
+const ROOMGUARD_THRESHOLD_OK: number = 10;
+const ROOMGUARD_THRESHOLD_WARN: number = 30;
+const ROOMGUARD_THRESHOLD_ACTION: number = 40;
 
 export class AdministrationLogic extends LogicBase {
 
@@ -89,6 +101,11 @@ export class AdministrationLogic extends LogicBase {
 	private a_lastActivity: Map<API_Character, number> = new Map();
 	private a_inactivityDidWarn: WeakSet<API_Character> = new WeakSet();
 
+	private a_guard_points: Map<number, IAdminGuardData> = new Map();
+	private a_guard_didWarn: Set<number> = new Set();
+	private a_guard_Acted: Set<number> = new Set();
+	private a_guard_lastMessage: WeakMap<API_Character, string> = new WeakMap();
+
 	// Metrics
 	private metric_players = new promClient.Gauge({
 		name: "hub_players_in_room",
@@ -99,6 +116,16 @@ export class AdministrationLogic extends LogicBase {
 		name: "hub_admin_commands_ran",
 		help: "hub_admin_commands_ran",
 		labelNames: ["roomName", "command"] as const
+	});
+	private metric_guard_points_current = new promClient.Gauge({
+		name: "hub_admin_guard_points_current",
+		help: "hub_admin_guard_points_current",
+		labelNames: ["memberNumber"] as const
+	});
+	private metric_guard_points = new promClient.Counter({
+		name: "hub_admin_guard_points",
+		help: "hub_admin_guard_points",
+		labelNames: ["memberNumber"] as const
 	});
 
 	constructor(settings: Partial<IAdminLogicSettings>) {
@@ -369,12 +396,18 @@ export class AdministrationLogic extends LogicBase {
 				name: newName,
 				description: options.description || "",
 				endTime: Date.now() + time * 1000,
-				votes: new Map(participants.map(p => [p, options.autoVoteYes?.includes(p) ? true : options.autoVoteNo?.includes(p) ? false : null])),
+				votes: new Map(participants.map(p => [p, null])),
 				reportProgress: !!options.reportProgress,
 				progress: options.progress,
 				endHook: options.endHook,
 				resolve
 			};
+			for (const p of options.autoVoteNo ?? []) {
+				vote.votes.set(p, false);
+			}
+			for (const p of options.autoVoteYes ?? []) {
+				vote.votes.set(p, true);
+			}
 			this.a_pendingVotes.set(newName, vote);
 			if (options.announcmentMessage !== null) {
 				for (const participant of participants) {
@@ -584,6 +617,13 @@ export class AdministrationLogic extends LogicBase {
 		}
 
 		const reason = targetMatch[2];
+		this.a_start_kickvote(connection, ban, target, sender, reason);
+	}
+
+	private a_start_kickvote(connection: API_Connector, ban: boolean, target: API_Character, sender: API_Character, reason: string) {
+		if (this.a_pendingKickVotes.has(target.MemberNumber))
+			return;
+
 		const voteName = `${ban ? "ban" : "kick"} ${target.MemberNumber}`;
 		this.a_kickProtection.set(target, Date.now() + KICKVOTE_PROTECTION_DURATION * 1000);
 		this.startVote(voteName, target.chatRoom, KICKVOTE_DURATION, {
@@ -607,7 +647,7 @@ export class AdministrationLogic extends LogicBase {
 				return;
 			}
 			logger.alert(`${this.a_LogHeader(connection)} Vote to ${ban ? "ban" : "kick"} ${target} (vote id: ${result.name}) ended with result Y: ${result.yes}  N: ${result.no}  DNV: ${result.didNotVote}`);
-			if (result.yes > result.no + Math.floor(result.didNotVote/2)) {
+			if (result.yes > result.no + Math.floor(result.didNotVote / 2)) {
 				connection.SendMessage("Chat",
 					`Player ${target} ${ban ? "ban" : "kick"} vote passed.\n` +
 					`Yes: ${result.yes}  No: ${result.no}  Did not vote: ${result.didNotVote}`
@@ -637,6 +677,83 @@ export class AdministrationLogic extends LogicBase {
 	}
 	//#endregion
 
+	//#region Room guard
+	private a_guard_givePoints(target: API_Character, points: number, reason: string) {
+		if (!(points > 0)) {
+			logger.error(`${this.a_LogHeader(target.connection)} Non-positive number of points for guard to give`, points, new Error());
+			return;
+		}
+		if (target.IsRoomAdmin())
+			return;
+		let data = this.a_guard_points.get(target.MemberNumber);
+		if (!data) {
+			data = {
+				points: 0,
+				log: []
+			};
+			this.a_guard_points.set(target.MemberNumber, data);
+		}
+		data.points += points;
+		data.log.push([reason, points]);
+		if (data.log.length > 32) {
+			data.log.shift();
+		}
+		this.metric_guard_points_current.labels({ memberNumber: target.MemberNumber }).set(data.points);
+		this.metric_guard_points.labels({ memberNumber: target.MemberNumber }).inc(points);
+		if (data.points >= ROOMGUARD_THRESHOLD_WARN && !this.a_guard_didWarn.has(target.MemberNumber)) {
+			logger.alert(`${this.a_LogHeader(target.connection)} GuardPoints warning for ${target}: ${data.points}\n`, ...data.log);
+			data.points = ROOMGUARD_THRESHOLD_WARN;
+			this.a_guard_didWarn.add(target.MemberNumber);
+			target.Tell(
+				"Chat",
+				`(\n` +
+				`==========[ ROOM GUARD ]==========\n` +
+				`Warning: Room guard has detected your actions as potentially disruptive or spamming.\n` +
+				`Please slow down a bit with what you are currently doing. If your actions continue like this, you will be automatically kicked from the room.\n` +
+				`Please be tolerant and try to not disrupt the room and others in it. Thank you!\n` +
+				`\n` +
+				`As Room Guard is experimental, this warning has been logged and admins will be checking the actions leading to it manually at a later point in time. ` +
+				`If you believe this was triggered for no good reason, there is a high chance that our investigation will make us tweak the sensitivity of the room guard further.\n` +
+				`==================================\n`
+			);
+		} else if (data.points >= ROOMGUARD_THRESHOLD_ACTION && !this.a_guard_Acted.has(target.MemberNumber)) {
+			const canBeBannedUntil = this.a_banAvailability.get(target.MemberNumber);
+			this.a_guard_Acted.add(target.MemberNumber);
+			this.a_banAvailability.set(target.MemberNumber, Date.now() + KICKVOTE_BAN_AVAILABILITY * 1000);
+
+			logger.alert(`${this.a_LogHeader(target.connection)} RoomGuard kicked ${target}: ${data.points}\n`, ...data.log);
+			target.connection.SendMessage("Emote", `*${target} has been automatically kicked by Room Guard™, as their actions have been detected as likely disruptive.`);
+			target.Kick().then(() => {
+				// Reset points to 0, resetting roomguard for specific user after kicking
+				data!.points = 0;
+			}, logger.fatal.bind(logger));
+
+			if (canBeBannedUntil != null && canBeBannedUntil >= Date.now()) {
+				this.a_start_kickvote(target.connection, true, target, target.connection.Player, "Room Guard™ detected repeated, likely disruptive or spammy actions.");
+			}
+		}
+	}
+
+	private a_guard_pointDecay() {
+		for (const [memberNumber, data] of this.a_guard_points.entries()) {
+			data.points -= ROOMGUARD_POINT_DECAY;
+			if ((this.a_guard_didWarn.has(memberNumber) || this.a_guard_Acted.has(memberNumber)) && data.points <= ROOMGUARD_THRESHOLD_OK) {
+				logger.alert(`[A] Room guard warning reset for ${memberNumber}`);
+				this.a_guard_didWarn.delete(memberNumber);
+				this.a_guard_Acted.delete(memberNumber);
+			}
+			if (!(data.points > 0)) {
+				this.a_guard_points.delete(memberNumber);
+				this.a_guard_didWarn.delete(memberNumber);
+				this.a_guard_Acted.delete(memberNumber);
+				this.metric_guard_points_current.labels({ memberNumber }).set(0);
+			} else {
+				this.metric_guard_points_current.labels({ memberNumber }).set(data.points);
+			}
+		}
+	}
+	//#endregion
+
 	private a_command_feedback(connection: API_Connector, args: string, sender: API_Character) {
 		const message = args.trim();
 		if (!message) {
@@ -644,6 +761,7 @@ export class AdministrationLogic extends LogicBase {
 			return;
 		}
 		sender.Tell("Whisper", "Your feedback has been saved, thank you!");
+		this.a_guard_givePoints(sender, 5, "feedback");
 		const msg = `${this.a_LogHeader(connection)} Feedback: ${sender}\n${message}`;
 		logger.alert(msg);
 		fs.writeFileSync("./data/messagelog.txt", msg + "\n\n", { flag: "a", encoding: "utf8" });
@@ -675,8 +793,8 @@ export class AdministrationLogic extends LogicBase {
 					this.a_inactivityDidWarn.add(character);
 					character.Tell("Chat",
 						`===== Inactivity warning! =====\n` +
-						`You have been inactive for quite a while. If you continue being inactive, you will soon ` +
-						`be kicked from the room to make space for others who want to enjoy it.` +
+						`You have not said something for quite a while. If you continue being inactive, you will soon ` +
+						`be kicked from the room to make space for others who want to enjoy it. Typing into the chat will reset this.` +
 						`\n===============================`
 					);
 					// Make sure players are warned correct time before being kicked
@@ -687,6 +805,8 @@ export class AdministrationLogic extends LogicBase {
 				}
 			}
 		}
+
+		this.a_guard_pointDecay();
 	}
 
 	private a_LogHeader(connection: API_Connector): string {
@@ -714,6 +834,20 @@ export class AdministrationLogic extends LogicBase {
 			this.a_lastActivity.set(event.Sender, Date.now());
 			this.a_inactivityDidWarn.delete(event.Sender);
 		}
+
+		//#region Room guard
+		if (event.message.Type === "Chat" || event.message.Type === "Emote") {
+			let points = _.sum(event.message.Content.split("\n").map(line => Math.max(1, Math.ceil(line.length / ROOMGUARD_CHAT_WIDTH))));
+			if (this.a_guard_lastMessage.get(event.Sender) === event.message.Content) {
+				points *= 2;
+			} else {
+				this.a_guard_lastMessage.set(event.Sender, event.message.Content);
+			}
+			this.a_guard_givePoints(event.Sender, points, "chat");
+		} else if (event.message.Type === "Action" || event.message.Type === "Activity") {
+			this.a_guard_givePoints(event.Sender, 2, "action");
+		}
+		//#endregion
 
 		//#region Commands handling
 		if (event.message.Type === "Whisper" && event.message.Content.startsWith("!")) {
@@ -810,6 +944,10 @@ export class AdministrationLogic extends LogicBase {
 		this.a_lastActivity.delete(event.character);
 		this.a_inactivityDidWarn.delete(event.character);
 
+		if (event.intentional) {
+			this.a_guard_givePoints(event.character, 5, "left room");
+		}
+
 		this.metric_players
 			.labels({ roomName: event.character.chatRoom.Name })
 			.set(event.character.chatRoom.characters.filter(c => !c.IsBot()).length);
@@ -840,6 +978,8 @@ export class AdministrationLogic extends LogicBase {
 		}
 
 		this.a_lastActivity.set(event.character, Date.now());
+
+		this.a_guard_givePoints(event.character, 10, "entered room");
 
 		this.metric_players
 			.labels({ roomName: event.character.chatRoom.Name })
@@ -910,6 +1050,20 @@ export class AdministrationLogic extends LogicBase {
 				logger.verbose(msg);
 			}
 		}
+
+		//#region Room guard
+		if (event.name === "ItemAdd" || event.name === "ItemRemove") {
+			if (
+				event.character !== event.source &&
+				!event.character.IsLoverOf(event.source) &&
+				!event.character.IsOwnedBy(event.source) &&
+				!event.source.IsOwnedBy(event.character) &&
+				!event.character.WhiteList.includes(event.source.MemberNumber)
+			) {
+				this.a_guard_givePoints(event.source, event.item.AssetGroup.Category === "Item" ? 3 : 1, _.snakeCase(event.name));
+			}
+		}
+		//#endregion
 
 		return false;
 	}
