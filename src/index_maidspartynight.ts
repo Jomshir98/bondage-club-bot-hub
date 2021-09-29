@@ -1,22 +1,13 @@
-import { AddFileOutput, AssetGet, BC_PermissionLevel, Connect, Init, JMod, logConfig, logger, LogLevel, SetConsoleOutput } from "bondage-club-bot-api";
+import { AssetGet, BC_PermissionLevel, Connect, Init, JMod, logConfig, logger } from "bondage-club-bot-api";
 
 import { MaidsPartyNightSinglePlayerAdventure } from "./logic/maidsPartyNightSinglePlayerAdventure";
 import { KNOWN_TROLL_LIST, SUPERUSERS } from "./config";
 import { accounts } from "./secrets";
 
-import fs from "fs";
 import { initMetrics } from "./metrics";
+import { setupLogging } from "./utils";
 
-SetConsoleOutput(LogLevel.VERBOSE);
-
-const time = new Date();
-const timestring = `${time.getFullYear() % 100}${(time.getMonth() + 1).toString().padStart(2, "0")}${time.getDate().toString().padStart(2, "0")}_` +
-	`${time.getHours().toString().padStart(2, "0")}${time.getMinutes().toString().padStart(2, "0")}`;
-const logPrefix = `${timestring}_${process.pid}`;
-
-fs.mkdirSync("./data/logs/maidspartynight", { recursive: true });
-AddFileOutput(`./data/logs/maidspartynight/${logPrefix}_debug.log`, false, LogLevel.DEBUG);
-AddFileOutput(`./data/logs/maidspartynight/${logPrefix}_error.log`, true, LogLevel.ALERT);
+setupLogging("maidspartynight");
 
 let conn: API_Connector | null = null;
 let conn2: API_Connector | null = null;

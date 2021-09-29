@@ -6,3 +6,5 @@ export const accounts: [string, string][] = [
 	["USERNAME", "PASSWORD"], // gameroom3
 	["USERNAME", "PASSWORD"]  // gameroom4
 ];
+
+export const DISCORD_WEBHOOK: string = "";
