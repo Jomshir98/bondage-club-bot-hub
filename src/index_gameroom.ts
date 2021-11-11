@@ -53,7 +53,7 @@ async function run() {
 			Admin: [conn.Player.MemberNumber, ...SUPERUSERS],
 			Ban: [...KNOWN_TROLL_LIST],
 			Game: "",
-			BlockCategory: []
+			BlockCategory: ["Leashing"]
 		}
 	);
 	await conn.Player.MoveToPos(0);

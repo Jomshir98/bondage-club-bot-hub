@@ -57,7 +57,7 @@ async function run() {
 			Admin: [conn.Player.MemberNumber, conn2.Player.MemberNumber, ...SUPERUSERS],
 			Ban: [...KNOWN_TROLL_LIST],
 			Game: "",
-			BlockCategory: []
+			BlockCategory: ["Leashing"]
 		}
 	);
 	logger.alert("Ready!");
