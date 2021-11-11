@@ -656,10 +656,6 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 		this.conn.SendMessage("Emote", `*GAME: ${sender} was registered as an active player.`);
 
 		this.beepSuccess = await this.matchmaking_notifier.notifyPlayersOfEnoughInterest(this.players);
-		void this.conn.ChatRoomUpdate({
-			Description: `[BOT] scripted multiplayer gameroom | manual in bot profile | ${this.matchmaking_notifier.waitingPlayers} queued`,
-			Background: "MainHall"
-		});
 		if (this.beepSuccess) {
 			sender.Tell("Chat", `GAME: You joining the game triggered a matchmaking beep to ${BEEP_AT_THIS_COUNT} players in ` +
 				`the waiting queue just now. Please stay around until everyone who was beeped will join the room within the next ` +
@@ -673,6 +669,9 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 				`You may want to consider also joining the queue with the beepme command to speed up the next match.`
 			);
 		}
+		void this.conn.ChatRoomUpdate({
+			Description: `[BOT] scripted multiplayer gameroom | manual in bot profile | ${this.matchmaking_notifier.waitingPlayers} queued`
+		});
 		await this.doTheWiggleDance();
 		// saw some bugs, therefore make sure it was reset
 		await wait(5000);
@@ -767,12 +766,12 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 			);
 		} else if (this.gameState === "game_not_started" || this.gameState === "game_was_won") {
 			await this.matchmaking_notifier.addPlayerToTheMatchmakingQueue(sender);
+			this.beepSuccess =
+				await this.matchmaking_notifier.notifyPlayersOfEnoughInterest(this.players);
 			void this.conn.ChatRoomUpdate({
 				Description: `[BOT] scripted multiplayer gameroom | manual in bot profile | ${this.matchmaking_notifier.waitingPlayers} queued`,
 				Background: "MainHall"
 			});
-			this.beepSuccess =
-				await this.matchmaking_notifier.notifyPlayersOfEnoughInterest(this.players);
 		} else {
 			sender.Tell("Whisper", `GAME: You cannot use this during a running game. Please register as a player ` +
 				`if you have not done so and wait in the room until the next round starts.`
