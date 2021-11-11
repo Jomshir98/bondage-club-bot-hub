@@ -1060,7 +1060,11 @@ export class AdministrationLogic extends LogicBase {
 				!event.source.IsOwnedBy(event.character) &&
 				!event.character.WhiteList.includes(event.source.MemberNumber)
 			) {
-				this.a_guard_givePoints(event.source, event.item.AssetGroup.Category === "Item" ? 3 : 1, _.snakeCase(event.name));
+				let points = 1;
+				if (event.item.AssetGroup.Category === "Item") {
+					points = event.name === "ItemAdd" ? 3 : 2;
+				}
+				this.a_guard_givePoints(event.source, points, _.snakeCase(event.name));
 			}
 		}
 		//#endregion
