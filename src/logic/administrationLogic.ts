@@ -7,15 +7,25 @@ import _ from "lodash";
 import fs from "fs";
 
 export interface IAdminLogicSettings {
+	/** @default true */
 	log: boolean;
+	/** @default false */
 	logConnectionMemberNumber: boolean;
+	/** @default false */
 	logConnectionName: boolean;
+	/** @default true */
 	kickVotingEnabled: boolean;
+	/** @default true */
 	votingEnabled: boolean;
+	/** @default true */
 	catchUnknownCommands: boolean;
+	/** @default 900000 (15 minutes) */
 	inactivityKickTimer: number | null;
+	/** @default 600000 (10 minutes) */
 	inactivityWarningTimer: number | null;
+	/** @default null */
 	inactivityKickEnabledOnlyBelowFreeSlotsCount: number | null;
+	/** @default true */
 	roomGuardEnabled: boolean;
 }
 
