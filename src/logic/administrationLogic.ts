@@ -16,6 +16,7 @@ export interface IAdminLogicSettings {
 	inactivityKickTimer: number | null;
 	inactivityWarningTimer: number | null;
 	inactivityKickEnabledOnlyBelowFreeSlotsCount: number | null;
+	roomGuardEnabled: boolean;
 }
 
 interface IAdminCommandInfo {
@@ -84,7 +85,8 @@ export class AdministrationLogic extends LogicBase {
 		catchUnknownCommands: true,
 		inactivityKickTimer: 15 * 60 * 1000,
 		inactivityWarningTimer: 10 * 60 * 1000,
-		inactivityKickEnabledOnlyBelowFreeSlotsCount: null
+		inactivityKickEnabledOnlyBelowFreeSlotsCount: null,
+		roomGuardEnabled: true
 	};
 	private a_destroyed: boolean = false;
 	private readonly a_tickTimer: NodeJS.Timeout;
@@ -679,6 +681,8 @@ export class AdministrationLogic extends LogicBase {
 
 	//#region Room guard
 	private a_guard_givePoints(target: API_Character, points: number, reason: string) {
+		if (!this.a_settings.roomGuardEnabled)
+			return;
 		if (!(points > 0)) {
 			logger.error(`${this.a_LogHeader(target.connection)} Non-positive number of points for guard to give`, points, new Error());
 			return;
