@@ -49,45 +49,45 @@ const gameConfigurations: Record<configurationName, Readonly<gameConfig>> = {
 	 * Claudia: with 2 I need x4
 	 */
 	"1player":
-		{
-			players: 1,
-			mistress: 1,
-			m_willpower: 120,
-			m_dominance: 17,
-			dice_sides: 20,
-			turnDuration: 30_000,
-			victoryDuration: 60_000
-		},
+	{
+		players: 1,
+		mistress: 1,
+		m_willpower: 120,
+		m_dominance: 17,
+		dice_sides: 20,
+		turnDuration: 30_000,
+		victoryDuration: 60_000
+	},
 	"2players":
-		{
-			players: 2,
-			mistress: 1,
-			m_willpower: 240,
-			m_dominance: 34,
-			dice_sides: 40,
-			turnDuration: 30_000,
-			victoryDuration: 60_000
-		},
+	{
+		players: 2,
+		mistress: 1,
+		m_willpower: 240,
+		m_dominance: 34,
+		dice_sides: 40,
+		turnDuration: 30_000,
+		victoryDuration: 60_000
+	},
 	"3players":
-		{
-			players: 3,
-			mistress: 1,
-			m_willpower: 360,
-			m_dominance: 51,
-			dice_sides: 60,
-			turnDuration: 30_000,
-			victoryDuration: 60_000
-		},
+	{
+		players: 3,
+		mistress: 1,
+		m_willpower: 360,
+		m_dominance: 51,
+		dice_sides: 60,
+		turnDuration: 30_000,
+		victoryDuration: 60_000
+	},
 	"4players":
-		{
-			players: 4,
-			mistress: 1,
-			m_willpower: 480,
-			m_dominance: 68,
-			dice_sides: 80,
-			turnDuration: 30_000,
-			victoryDuration: 60_000
-		}
+	{
+		players: 4,
+		mistress: 1,
+		m_willpower: 480,
+		m_dominance: 68,
+		dice_sides: 80,
+		turnDuration: 30_000,
+		victoryDuration: 60_000
+	}
 };
 
 const listOfUsedItemsInThisScene: ([string, string] | [string, string, string])[] = [
@@ -159,7 +159,7 @@ export class MistressTroubleGameRoom extends AdministrationLogic {
 	readonly conn: API_Connector;
 
 	constructor(conn: API_Connector) {
-		super({inactivityKickEnabledOnlyBelowFreeSlotsCount: 7});
+		super({ inactivityKickEnabledOnlyBelowFreeSlotsCount: 7 });
 		this.conn = conn;
 
 		this.registerCommand("status", (connection, args, sender) => this.handleStatusCommand(sender), `To get information about the running game`);
@@ -291,6 +291,16 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 	}
 
 	async handleJoingameCommand(sender: API_Character) {
+
+		if (!sender.ProtectionAllowInteract()) {
+			sender.Tell("Chat", `Warning: You are unable to join the game because the bot currently cannot interact with you ` +
+				`because your bondage club version is newer than the bot's version.\n` +
+				`This might be caused by either you being on beta or the bot not yet being updated to the latest version. ` +
+				`If you are using beta, please login using the normal version to enable the bot to interact with you.`
+			);
+			logger.info(`Player check for ${sender}: Protection: Version=${sender.OnlineSharedSettings.GameVersion}, Admin=${this.conn.Player.IsRoomAdmin()}`);
+			return;
+		}
 
 		const allow = await sender.GetAllowItem();
 		// TODO: Also check if they are untied and allow at least base restraints, otherwise, prevent them from joining
@@ -461,7 +471,7 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 		if (target === null) {
 			// mistress wins
 			return false;
-		// if each player is at the starting value, meaning it is the first action of the game, select a random player
+			// if each player is at the starting value, meaning it is the first action of the game, select a random player
 		} else if (target.loseCounter === 7) {
 			const randomIndex = Math.floor(Math.random() * this.active_config.players);
 			target = this.players[randomIndex];
@@ -501,7 +511,7 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 		const match = (/^([0-9]+)\s([0-9]+)\s([0-9]+)\s([0-9]+)$/i).exec(msg);
 		if (!match) {
 			sender.Tell("Whisper", `GAME: Bad format, expected four integer: var1 -> numberOfPlayers / var2 -> timesCorruptCommandPerPlayerPhase1 ` +
-						`/ var3 -> timesCorruptCommandPerPlayerPhase2 / var4 -> willpower.`
+				`/ var3 -> timesCorruptCommandPerPlayerPhase2 / var4 -> willpower.`
 			);
 			return;
 		}
@@ -680,7 +690,7 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 		/ role in game not free            this.role !== null && !this.club_members.has(this.role) && this.roles_target === null   go-into-if
 		/ role not in game		   		   this.role === null && !this.club_members.has(this.role) && this.roles_target === null   go-into-if
 		/
-             SOLUTION:         	   this.role === null || (this.role !== null && !this.club_members.has(this.role)) || this.stalker_target !== null
+			 SOLUTION:         	   this.role === null || (this.role !== null && !this.club_members.has(this.role)) || this.stalker_target !== null
 		*/
 
 		// if ((this.gameState === "waiting_on_night_activities" || this.gameState === "night_1")

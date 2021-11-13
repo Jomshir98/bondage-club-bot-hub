@@ -73,97 +73,97 @@ type configurationName =
 
 const gameConfigurations: Record<configurationName, Readonly<gameConfig>> = {
 	"fiveOrSixPlayers":
-		{
-			kidnapper: 1,
-			maid: 1,
-			switch: 1,
-			stalker: 1,
-			fan: 0,
-			masochist: 0,
-			mistress: 0,
-			mistressCanProtectHerself: true,
-			announceMistressProtectionSucess: true,
-			mistressCanpickSameTargetTwice: true,
-			firstDayDuration: 120_000,
-			firstNightDuration: 70_000,
-			dayDuration: 1_200_000,
-			nightDuration: 70_000,
-			defenseDuration: 50_000,
-			votingDuration: 100_000,
-			victoryDuration: 60_000,
-			openSuspicions: true,
-			firstNightKidnapping: false,
-			discloseRolesAtStart: true
-		},
+	{
+		kidnapper: 1,
+		maid: 1,
+		switch: 1,
+		stalker: 1,
+		fan: 0,
+		masochist: 0,
+		mistress: 0,
+		mistressCanProtectHerself: true,
+		announceMistressProtectionSucess: true,
+		mistressCanpickSameTargetTwice: true,
+		firstDayDuration: 120_000,
+		firstNightDuration: 70_000,
+		dayDuration: 1_200_000,
+		nightDuration: 70_000,
+		defenseDuration: 50_000,
+		votingDuration: 100_000,
+		victoryDuration: 60_000,
+		openSuspicions: true,
+		firstNightKidnapping: false,
+		discloseRolesAtStart: true
+	},
 	"sevenPlayers":
-		{
-			kidnapper: 1,
-			maid: 1,
-			switch: 1,
-			stalker: 1,
-			fan: 1,
-			masochist: 0,
-			mistress: 0,
-			mistressCanProtectHerself: true,
-			announceMistressProtectionSucess: true,
-			mistressCanpickSameTargetTwice: true,
-			firstDayDuration: 120_000,
-			firstNightDuration: 70_000,
-			dayDuration: 1_100_000,
-			nightDuration: 70_000,
-			defenseDuration: 50_000,
-			votingDuration: 100_000,
-			victoryDuration: 60_000,
-			openSuspicions: true,
-			firstNightKidnapping: false,
-			discloseRolesAtStart: true
-		},
+	{
+		kidnapper: 1,
+		maid: 1,
+		switch: 1,
+		stalker: 1,
+		fan: 1,
+		masochist: 0,
+		mistress: 0,
+		mistressCanProtectHerself: true,
+		announceMistressProtectionSucess: true,
+		mistressCanpickSameTargetTwice: true,
+		firstDayDuration: 120_000,
+		firstNightDuration: 70_000,
+		dayDuration: 1_100_000,
+		nightDuration: 70_000,
+		defenseDuration: 50_000,
+		votingDuration: 100_000,
+		victoryDuration: 60_000,
+		openSuspicions: true,
+		firstNightKidnapping: false,
+		discloseRolesAtStart: true
+	},
 	"eightPlayers":
-		{
-			kidnapper: 2,
-			maid: 1,
-			switch: 0,
-			stalker: 0,
-			fan: 0,
-			masochist: 1,
-			mistress: 1,
-			mistressCanProtectHerself: true,
-			announceMistressProtectionSucess: true,
-			mistressCanpickSameTargetTwice: true,
-			firstDayDuration: 180_000,
-			firstNightDuration: 90_000,
-			dayDuration: 1_000_000,
-			nightDuration: 90_000,
-			defenseDuration: 40_000,
-			votingDuration: 120_000,
-			victoryDuration: 60_000,
-			openSuspicions: true,
-			firstNightKidnapping: true,
-			discloseRolesAtStart: true
-		},
+	{
+		kidnapper: 2,
+		maid: 1,
+		switch: 0,
+		stalker: 0,
+		fan: 0,
+		masochist: 1,
+		mistress: 1,
+		mistressCanProtectHerself: true,
+		announceMistressProtectionSucess: true,
+		mistressCanpickSameTargetTwice: true,
+		firstDayDuration: 180_000,
+		firstNightDuration: 90_000,
+		dayDuration: 1_000_000,
+		nightDuration: 90_000,
+		defenseDuration: 40_000,
+		votingDuration: 120_000,
+		victoryDuration: 60_000,
+		openSuspicions: true,
+		firstNightKidnapping: true,
+		discloseRolesAtStart: true
+	},
 	"ninePlayers":
-		{
-			kidnapper: 2,
-			maid: 1,
-			switch: 0,
-			stalker: 0,
-			fan: 1,
-			masochist: 0,
-			mistress: 1,
-			mistressCanProtectHerself: false,
-			announceMistressProtectionSucess: true,
-			mistressCanpickSameTargetTwice: true,
-			firstDayDuration: 120_000,
-			firstNightDuration: 70_000,
-			dayDuration: 1_000_000,
-			nightDuration: 90_000,
-			defenseDuration: 40_000,
-			votingDuration: 120_000,
-			victoryDuration: 60_000,
-			openSuspicions: true,
-			firstNightKidnapping: false,
-			discloseRolesAtStart: true
-		}
+	{
+		kidnapper: 2,
+		maid: 1,
+		switch: 0,
+		stalker: 0,
+		fan: 1,
+		masochist: 0,
+		mistress: 1,
+		mistressCanProtectHerself: false,
+		announceMistressProtectionSucess: true,
+		mistressCanpickSameTargetTwice: true,
+		firstDayDuration: 120_000,
+		firstNightDuration: 70_000,
+		dayDuration: 1_000_000,
+		nightDuration: 90_000,
+		defenseDuration: 40_000,
+		votingDuration: 120_000,
+		victoryDuration: 60_000,
+		openSuspicions: true,
+		firstNightKidnapping: false,
+		discloseRolesAtStart: true
+	}
 };
 
 const listOfUsedItemsInThisScene: ([string, string] | [string, string, string])[] = [
@@ -282,7 +282,7 @@ export class KidnappersGameRoom extends AdministrationLogic {
 	});
 
 	constructor(conn: API_Connector) {
-		super({inactivityKickEnabledOnlyBelowFreeSlotsCount: 6});
+		super({ inactivityKickEnabledOnlyBelowFreeSlotsCount: 6 });
 		this.conn = conn;
 
 		this.registerCommand("status", (connection, args, sender) => this.handleStatusCommand(sender), `To get information about the running game`);
@@ -551,7 +551,7 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 					this.suspicions.set(character, this.suspicions.get(oldCharacter)!);
 					this.suspicions.delete(oldCharacter);
 				}
-				this.suspicions.forEach((key, value) => {if (value === oldCharacter) this.suspicions.set(key, character);});
+				this.suspicions.forEach((key, value) => { if (value === oldCharacter) this.suspicions.set(key, character); });
 			}
 			this.players.splice(oldIndex, 1, character);
 		} else {
@@ -641,6 +641,15 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 
 	async handleJoingameCommand(sender: API_Character) {
 		if (this.players.includes(sender)) {
+			return;
+		}
+		if (!sender.ProtectionAllowInteract()) {
+			sender.Tell("Chat", `Warning: You are unable to join the game because the bot currently cannot interact with you ` +
+				`because your bondage club version is newer than the bot's version.\n` +
+				`This might be caused by either you being on beta or the bot not yet being updated to the latest version. ` +
+				`If you are using beta, please login using the normal version to enable the bot to interact with you.`
+			);
+			logger.info(`Player check for ${sender}: Protection: Version=${sender.OnlineSharedSettings.GameVersion}, Admin=${this.conn.Player.IsRoomAdmin()}`);
 			return;
 		}
 		const allow = await sender.GetAllowItem();
@@ -874,7 +883,7 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 	handleKidnapCommand(msg: string, sender: API_Character) {
 		if (this.kidnappers.has(sender)) {
 			if (this.kidnappers_target === null &&
-			(this.gameState === "waiting_on_night_activities" || (this.gameState === "night_1" && this.active_config.firstNightKidnapping))) {
+				(this.gameState === "waiting_on_night_activities" || (this.gameState === "night_1" && this.active_config.firstNightKidnapping))) {
 				let isInteger: boolean = true;
 				const list: API_Character[] = [];
 				let match = (/^([0-9]+)$/i).exec(msg);
@@ -931,7 +940,7 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 
 	handleWatchCommand(msg: string, sender: API_Character) {
 		if (this.maid === sender && this.maid_target === null
-		&& (this.gameState === "waiting_on_night_activities" || this.gameState === "night_1") && this.club_members.has(this.maid)) {
+			&& (this.gameState === "waiting_on_night_activities" || this.gameState === "night_1") && this.club_members.has(this.maid)) {
 			let isInteger: boolean = true;
 			const list: API_Character[] = [];
 			let match = (/^([0-9]+)$/i).exec(msg);
@@ -979,7 +988,7 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 
 	handleStalkCommand(msg: string, sender: API_Character) {
 		if (this.stalker === sender && this.stalker_target === null
-		&& (this.gameState === "waiting_on_night_activities" || this.gameState === "night_1") && this.club_members.has(this.stalker)) {
+			&& (this.gameState === "waiting_on_night_activities" || this.gameState === "night_1") && this.club_members.has(this.stalker)) {
 			let isInteger: boolean = true;
 			const list: API_Character[] = [];
 			let match = (/^([0-9]+)$/i).exec(msg);
@@ -1011,7 +1020,7 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 				} else {
 					sender.Tell("Whisper", `GAME: You stalked ${this.stalker_target.Name} all night long, ` +
 						`${this.maid === this.stalker_target ? 'while grinning happily, as she is your beloved shy maid in the flesh!' :
-						`but she is clearly not your maid. What a sad night!`}`
+							`but she is clearly not your maid. What a sad night!`}`
 					);
 				}
 			} else {
@@ -1022,7 +1031,7 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 
 	handleProtectCommand(msg: string, sender: API_Character) {
 		if (this.mistress === sender && this.mistress_target === null
-		&& (this.gameState === "waiting_on_night_activities" || this.gameState === "night_1") && this.club_members.has(this.mistress)) {
+			&& (this.gameState === "waiting_on_night_activities" || this.gameState === "night_1") && this.club_members.has(this.mistress)) {
 			let isInteger: boolean = true;
 			const list: API_Character[] = [];
 			let match = (/^([0-9]+)$/i).exec(msg);
@@ -1127,7 +1136,7 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 					this.innocent_votes.add(this.the_accused);
 					this.conn.SendMessage("Emote", `*GAME: ${this.the_accused} is suspected of being a kidnapper` +
 						`${this.active_config.openSuspicions ? ` by ${sender} and ${this.suspicions.get(list[0])}` : ``} and was ` +
-						`temporarily restrained. She now has ${this.active_config.defenseDuration/1000} seconds to address the ` +
+						`temporarily restrained. She now has ${this.active_config.defenseDuration / 1000} seconds to address the ` +
 						`accusations, before her fate will be decided in a vote on keeping her tied up for everyone's safety.`
 					);
 					const rope = list[0].Appearance.AddItem(AssetGet("ItemArms", "HempRope"));
@@ -1184,28 +1193,28 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 		if (this.gameState === "game_not_started") return;
 
 		if (!this.roleWarnings.has("mistress") && now + 25_000 >= this.turnTimer && this.mistress_target === null
-		&& (this.gameState === "waiting_on_night_activities" || this.gameState === "night_1")) {
+			&& (this.gameState === "waiting_on_night_activities" || this.gameState === "night_1")) {
 			if (this.mistress !== null) {
 				this.mistress.Tell("Whisper", `GAME: Psssst... only 25 seconds left to make night plans, glorious mistress !`);
 				this.roleWarnings.add("mistress");
 			}
 		}
 		if (!this.roleWarnings.has("maid") && now + 25_000 >= this.turnTimer && this.maid_target === null
-		&& (this.gameState === "waiting_on_night_activities" || this.gameState === "night_1")) {
+			&& (this.gameState === "waiting_on_night_activities" || this.gameState === "night_1")) {
 			if (this.maid !== null) {
 				this.maid.Tell("Whisper", `GAME: Psssst... only 25 seconds left to invstigate a club member, sneaky maid !`);
 				this.roleWarnings.add("maid");
 			}
 		}
 		if (!this.roleWarnings.has("stalker") && now + 25_000 >= this.turnTimer && this.stalker_target === null
-		&& (this.gameState === "waiting_on_night_activities" || this.gameState === "night_1")) {
+			&& (this.gameState === "waiting_on_night_activities" || this.gameState === "night_1")) {
 			if (this.stalker !== null) {
 				this.stalker.Tell("Whisper", `GAME: Psssst... only 25 seconds left to find the maid, love-struck stalker !`);
 				this.roleWarnings.add("stalker");
 			}
 		}
 		if (!this.roleWarnings.has("kidnappers") && now + 25_000 >= this.turnTimer && this.kidnappers_target === null
-		&& (this.gameState === "waiting_on_night_activities" || this.gameState === "night_1")) {
+			&& (this.gameState === "waiting_on_night_activities" || this.gameState === "night_1")) {
 			this.whisperRemainingKidnappers("Psssst... only 25 seconds left to kidnap a club member");
 			this.roleWarnings.add("kidnappers");
 		}
@@ -1219,16 +1228,16 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 		/ role in game not free            this.role !== null && !this.club_members.has(this.role) && this.roles_target === null   go-into-if
 		/ role not in game		   		   this.role === null && !this.club_members.has(this.role) && this.roles_target === null   go-into-if
 		/
-             SOLUTION:         	   this.role === null || (this.role !== null && !this.club_members.has(this.role)) || this.stalker_target !== null
+			 SOLUTION:         	   this.role === null || (this.role !== null && !this.club_members.has(this.role)) || this.stalker_target !== null
 		*/
 
 		if ((this.gameState === "waiting_on_night_activities" || this.gameState === "night_1")
-		&& (this.mistress === null || (this.mistress !== null && !this.club_members.has(this.mistress)) || this.mistress_target !== null )
-		&& (this.maid === null || (this.maid !== null && !this.club_members.has(this.maid)) || this.maid_target !== null )
-		&& (this.stalker === null || (this.stalker !== null && !this.club_members.has(this.stalker)) || this.stalker_target !== null )) {
+			&& (this.mistress === null || (this.mistress !== null && !this.club_members.has(this.mistress)) || this.mistress_target !== null)
+			&& (this.maid === null || (this.maid !== null && !this.club_members.has(this.maid)) || this.maid_target !== null)
+			&& (this.stalker === null || (this.stalker !== null && !this.club_members.has(this.stalker)) || this.stalker_target !== null)) {
 			if (this.kidnappers_target !== null) {
 				if ((this.mistress !== null && !this.club_members.has(this.mistress))
-				|| this.mistress_target !== this.kidnappers_target) {
+					|| this.mistress_target !== this.kidnappers_target) {
 					this.tieUpCharacterAndRemove("kidnapper", this.kidnappers_target);
 					this.conn.SendMessage("Emote", `*GAME: The sun starts rising and the club members slowly realize that ` +
 						`${this.kidnappers_target.Name} is missing. Another kidnapping! Who is it?`
@@ -1509,7 +1518,7 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 			}
 		} else {
 			this.whisperRemainingKidnappers("You are using tonight to prepare tomorrow night's kidnapping thoroughly." +
-			"\nNOTE: In the configuration for this game round, a kidnapping during the first night is not allowed");
+				"\nNOTE: In the configuration for this game round, a kidnapping during the first night is not allowed");
 		}
 
 		if (this.maid !== null && this.club_members.has(this.maid)) {
@@ -1529,13 +1538,13 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 		if (this.mistress !== null && this.club_members.has(this.mistress)) {
 			this.mistress.Tell("Whisper", `GAME - WHISPER COMMAND NEEDED:\n` +
 				`${this.active_config.mistressCanProtectHerself ? `You can now decide to either protect yourself from being kidnapped or ` :
-				`You can now `}` +
+					`You can now `}` +
 				`summon any other club member for a nightly session, keeping them safe from any kidnapping. ` +
 				`If you unknowingly summon a kidnapper, this will not prevent them from kidnapping someone tonight. ` +
 				`Make the choice whom to protect by WHISPERING '!protect [name OR memberID]' (e.g. !protect ${this.mistress.Name}) to the bot ` +
 				`'${this.conn.Player.Name}' within the time limit.` +
 				`${this.active_config.mistressCanpickSameTargetTwice ? `\nNOTE: You could pick the same person in successive nights for as often as you like.` :
-				`\nNOTE: You cannot target the same person in two nights following each other!`}`
+					`\nNOTE: You cannot target the same person in two nights following each other!`}`
 			);
 		}
 	}
@@ -1557,9 +1566,9 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 		this.conn.SendMessage("Emote", `*${this.active_config.openSuspicions ? `GAME:` : `GAME - WHISPER COMMAND NEEDED:\n`}` +
 			` Are kidnappers among us? It's almost certain! Now it is time to reveal them! Who is suspicious? Who lies?\nAnyone can ` +
 			`${this.active_config.openSuspicions ?
-			`openly suspect a club member by writing '!suspect [name OR memberID]' ` +
-			`(e.g. !suspect Lily) into the chat at any time. ` :
-			`suspect a club member by WHISPERING '!suspect [name OR memberID]' (e.g. !suspect Lily) to the bot ${this.conn.Player.Name} at any time. `}` +
+				`openly suspect a club member by writing '!suspect [name OR memberID]' ` +
+				`(e.g. !suspect Lily) into the chat at any time. ` :
+				`suspect a club member by WHISPERING '!suspect [name OR memberID]' (e.g. !suspect Lily) to the bot ${this.conn.Player.Name} at any time. `}` +
 			`When two suspicions were ` +
 			`voiced against a club member, a vote about restraining her will be started. In case you don't feel like raising ` +
 			`any more suspicions today, you can use '!skip' to indicate that you are ready to end the day early.`
@@ -1569,7 +1578,7 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 	giveTrialInstruction() {
 		this.conn.SendMessage("Emote", `*GAME: After giving ${this.the_accused} ample time to refute the accusations, ` +
 			`it is now time to vote on her case. Should she be kept tightly restrained and gagged?` +
-			`\nEverybody can now either write !guilty or !innocent into the chat within the next ${this.active_config.votingDuration/1000}` +
+			`\nEverybody can now either write !guilty or !innocent into the chat within the next ${this.active_config.votingDuration / 1000}` +
 			` seconds. A majority from all remaining participants is needed to make a decision.`
 		);
 	}
@@ -1768,7 +1777,7 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 			`${msg}` +
 			`${this.active_config.masochist === 1 ? 'Moreover, the masochist also achieved her goal.' : ''}\n` +
 			this.gameEndMessage +
-			`\nNote: The next game can be started in ${this.active_config.victoryDuration/1000} seconds. ` +
+			`\nNote: The next game can be started in ${this.active_config.victoryDuration / 1000} seconds. ` +
 			`If you need to leave, you can use !freeandleave to get untied and kicked.`
 		);
 
@@ -1808,7 +1817,7 @@ In urgent cases, you can also contact Jomshir, the creator of the bot, on Bondag
 			'\n~ ~ ~ ~ The club members win! Congratulations! ~ ~ ~ ~\n' +
 			`${this.active_config.masochist === 1 ? `The masochist ${this.masochist?.IsRestrained ? 'achieved her goal, too.' : "didn't achieve her goal."}` : ''}\n` +
 			this.gameEndMessage +
-			`\nNote: The next game can be started in ${this.active_config.victoryDuration/1000} seconds. ` +
+			`\nNote: The next game can be started in ${this.active_config.victoryDuration / 1000} seconds. ` +
 			`If you need to leave, you can use !freeandleave to get untied and kicked.`
 		);
 

@@ -45,7 +45,7 @@ enum ThePartyProgress {
 enum TeasingLadyProgress {
 	notMet = "00",
 	meetingForTheFirstTime = "01",
-	meetingForTheSecondTime ="02"
+	meetingForTheSecondTime = "02"
 }
 
 type EventPosition =
@@ -226,7 +226,15 @@ export class MaidsPartyNightSinglePlayerAdventure extends LoggingLogic {
 	async playerCheck(character: API_Character): Promise<boolean> {
 		let hadWarnings = false;
 		const allow = await character.GetAllowItem();
-		if (!allow) {
+		if (!character.ProtectionAllowInteract()) {
+			character.Tell("Chat", `Warning: The bot currently cannot interact with you ` +
+				`because your bondage club version is newer than the bot's version.\n` +
+				`This might be caused by either you being on beta or the bot not yet being updated to the latest version. ` +
+				`If you are using beta, please login using the normal version to enable the bot to interact with you.`
+			);
+			logger.info(`Player check for ${character}: Protection: Version=${character.OnlineSharedSettings.GameVersion}, Admin=${this.conn.Player.IsRoomAdmin()}`);
+			hadWarnings = true;
+		} else if (!allow) {
 			character.Tell("Chat", `Warning: The bot currently cannot interact with you because of your permission settings. Please change them or white list the bot.`);
 			logger.info(`Player check for ${character}: Permission level: ` + BC_PermissionLevel[character.ItemPermission]);
 			hadWarnings = true;
@@ -506,8 +514,8 @@ export class MaidsPartyNightSinglePlayerAdventure extends LoggingLogic {
 					return;
 				} else if (!this.hintShown) {
 					sender.Tell("Whisper", `HINT: To proceed, type an emote into the chat using the word in round brackets. ` +
-					`Here is an example: If you find a word in parentheses somewhere in the text such as (very sorry), you use the word between ` +
-					`the round brackets to type an emote into the chat, so in this case '/me very sorry' or '*is very sorry' .`);
+						`Here is an example: If you find a word in parentheses somewhere in the text such as (very sorry), you use the word between ` +
+						`the round brackets to type an emote into the chat, so in this case '/me very sorry' or '*is very sorry' .`);
 					this.hintShown = true;
 				}
 			} else if (this.storyProgress === StoryProgress.introduction && this.introductionProgress === IntroductionProgress.acceptingTheAssignment) {
