@@ -90,7 +90,7 @@ export class IwouldnotmindGameRoom extends AdministrationLogic {
 	static readonly description = `
 I WOULDN'T MIND
 ===================================================================
-a game by Lily, room concept by Claudia & Clare, and bot by Jomshir
+a game by Lily, room concept by Claudia & Clare, using Jomshir's BotAPI
 
 In memory of Lily, one of the oldest mistresses of the club, who loves to play games and wanted to bring joy to awesome people with her creative game ideas. 'I wouldn't mind' is her masterpiece.
 It is a kinky and fun multiplayer game in the spirit of popular party games like truth and dare. The game is best played with four to five players, but can be started with three.
@@ -150,6 +150,9 @@ Contact us
 ===================================
 You can whisper any feedback (including bug reports) for the authors of the room to the bot, by starting your message with '!feedback' (e.g. !feedback I want to tell you that...).
 In urgent cases, you can also contact Jomshir, the creator of the bot, on BondageClub discord: Jomshir98#0022
+
+This bot was created using Jomshir's BotAPI.
+If you would like to make a bot room similar to this one, you can find all necessary info on the Bondage Club Scripting Community Discord: https://discord.gg/SHJMjEh9VH
 
 ☻Have fun~☺
 `.trim();

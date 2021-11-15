@@ -49,7 +49,7 @@ async function run() {
 	await conn.ChatRoomJoinOrCreate(
 		{
 			Name: "A maids party night",
-			Description: "[BOT] scripted room singleplayer adventure | version 2021-04-05",
+			Description: "[BOT] scripted room singleplayer adventure | version 2021-11-13",
 			Background: "SynthWave",
 			Limit: 2,
 			Private: true,

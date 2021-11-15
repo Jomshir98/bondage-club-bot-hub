@@ -215,7 +215,7 @@ export class MaidsPartyNightSinglePlayerAdventure extends LoggingLogic {
 		character.Tell("Emote", "*You can (reset the scene fully) at any point in time with '*reset the scene fully' " +
 			` in the chat or by whispering 'end simulation' to the bot. ` +
 			`At any time, you can leave the locked room by whispering 'leave' to the main bot '${this.conn.Player.Name}'.\n` +
-			`Whispering 'help' will bring up this text again. If you would like to contact us, whisper 'contact'. Please enjoy!`);
+			`Whispering 'help' will bring up this text again. If you would like to contact us or get more info on Jomshir's BotAPI, whisper 'contact'. Please enjoy!`);
 		if (!character.CanTalk()) {
 			character.Tell("Whisper", `Because you are gagged, you may not be able to use whispers depending on your settings. Therefore, only right now, ` +
 				`you can still decide to (leave) instead of (starting) the scenario.`
@@ -299,10 +299,10 @@ export class MaidsPartyNightSinglePlayerAdventure extends LoggingLogic {
 		this.storyProgress = StoryProgress.theEnd;
 		this.conn.SendMessage("Emote", `*- The End -`);
 		// TODO: Remove 'leave' part after we have the VIP system for rooms available and implemented for this scenario
-		character.Tell("Whisper", `${(toBeContinued ? "TO BE CONTINUED (maybe): You have reached the current" : "END: You have reached the")} ` +
+		character.Tell("Whisper", `${(toBeContinued ? "END OF THE DEMO: You have reached the current" : "END: You have reached the")} ` +
 			`end of this path. You can (end) the scenario to reset it, getting your original clothes back, or just (leave) the room like you are right now. ` +
 			`As this scenario is an experiment / tech demo, we would love any feedback and suggestions. For that, whisper a message starting with ! to the bot. ` +
-			`${(toBeContinued ? "This path is not yet finished and could be continued based on the received feedback. " : "")}Thank you for playing!`
+			`${(toBeContinued ? "This demo ends intentionally open-end and will most likely not be continued. It is there to inspire others to use the wide feature-set of Jomshir's bot API to create something themselves. " : "")}Thank you for playing!`
 		);
 	}
 
@@ -934,7 +934,7 @@ export class MaidsPartyNightSinglePlayerAdventure extends LoggingLogic {
 						`again to the entrance area.`
 					);
 					// TODO: remove the end below when more story was added here
-					logger.alert(`Player ${sender.Name} (${sender.MemberNumber}) reached ending: Club lady - to be continued-`);
+					logger.alert(`Player ${sender.Name} (${sender.MemberNumber}) reached ending: Club lady - end of the demo-`);
 					this.metric_endings.labels({ ending: "Club lady" }).inc();
 					this.playerGenericEnd(sender, true);
 					return;
@@ -1016,9 +1016,9 @@ export class MaidsPartyNightSinglePlayerAdventure extends LoggingLogic {
 		} else if (cmd.startsWith("end simulation") && cmd.startsWith("stop simulation")) {
 			await this.cleanUpActionsAsActivePlayerTriggeredRoomReset(sender);
 		} else if (cmd.startsWith("contact")) {
-			// TODO: Maybe add a note here in the future that advertises the bots and encourages others that it is not so hard to make a scripted room if one knows some javascript.
 			let msg = `You can whisper any feedback (including bug reports) for us to the main bot, by starting your message with '!' (eg. !I would like...)\n` +
-				`You can also contact Jomshir on BondageClub discord: Jomshir98#0022`;
+				`This bot was created using Jomshir's BotAPI. If you would like to make a bot room similar to this one, you can find` +
+				`all necessary info on the Bondage Club Scripting Community Discord: https://discord.gg/SHJMjEh9VH`;
 			const admins = this.conn.chatRoom.characters.filter(c => c.IsRoomAdmin() && !c.IsBot());
 			if (admins.length > 0) {
 				msg += `\nAlternatively, you can also speak directly into the chat, as the following characters are also humans: ` + admins.map(C => C.Name).join(", ");

@@ -460,7 +460,7 @@ export class RoleplaychallengeGameRoom extends AdministrationLogic {
 	static readonly description = `
 ROLEPLAY CHALLENGE
 ===================================================================
-a game by Claudia, room concept by Claudia & Clare, and bot by Jomshir.
+a game by Claudia, room concept by Claudia & Clare, using Jomshir's BotAPI
 
 The game offers many randomized roleplay challenges in several million unique variants. It is played with two to three players and is a vehicle to bring more roleplay back to the public rooms of the club. This room may make it easier to meet new people who love to roleplay, like most members did in the early days of the club.
 
@@ -541,6 +541,9 @@ Contact us
 ===================================
 You can whisper any feedback (including bug reports) for the authors of the room to the bot, by starting your message with '!feedback' (e.g. !feedback I want to tell you that...).
 In urgent cases, you can also contact Jomshir, the creator of the bot, on BondageClub discord: Jomshir98#0022
+
+This bot was created using Jomshir's BotAPI.
+If you would like to make a bot room similar to this one, you can find all necessary info on the Bondage Club Scripting Community Discord: https://discord.gg/SHJMjEh9VH
 
 ☻Have fun~☺
 `.trim();

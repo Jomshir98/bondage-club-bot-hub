@@ -207,7 +207,7 @@ export class MistressTroubleGameRoom extends AdministrationLogic {
 	static readonly description = `
 MISTRESS TROUBLE
 ===================================================================
-by Claudia, room concept by Claudia & Clare, and bot by Jomshir
+by Claudia, room concept by Claudia & Clare, using Jomshir's BotAPI
 
 The game needs one to four players. 
 
@@ -218,6 +218,9 @@ Contact us
 ===================================
 You can whisper any feedback (including bug reports) for the authors of the room to the bot, by starting your message with '!feedback' (e.g. !feedback I want to tell you that...).
 In urgent cases, you can also contact Jomshir, the creator of the bot, on BondageClub discord: Jomshir98#0022
+
+This bot was created using Jomshir's BotAPI.
+If you would like to make a bot room similar to this one, you can find all necessary info on the Bondage Club Scripting Community Discord: https://discord.gg/SHJMjEh9VH
 `.trim();
 
 
