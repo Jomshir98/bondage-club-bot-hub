@@ -64,7 +64,8 @@ const listOfUsedItemsInThisScene: ([string, string] | [string, string, string])[
 	["ItemHands", "SpankingToys", "Paddle"],
 	["ItemMouth", "DusterGag"],
 	["ItemArms", "LeatherArmbinder", "WrapStrap"],
-	["ItemMouth", "BallGag", "Shiny"]
+	["ItemMouth", "BallGag", "Shiny"],
+	["ItemMisc", "ServingTray"]
 ];
 
 const listOfUsedItemGroups = _.uniq(listOfUsedItemsInThisScene.map(i => i[0]));
@@ -83,6 +84,8 @@ const listOfAllNPCsOutfits: Record<string, string> = {
 	"mistressPetEntrance": "NobwRAcghgtgpmAXGASnA5gVwDZQE5gA0YA4ngPaYAOSYAspQC4AWRYAwuduQYsGAGIArADEATADZJYALoBfQuGjxaABUwBnDQE8AMgEt0zRgEY2ZSjWTqt2sAqWwEyAELZNrYheq03HtqoUVHB4jHaI4ACiAB5UeHBa+uQAdrR0cAAm+pgw9g6QTrQi7voZGuYUPsjFmKXl+crOYJEw5Iz6AMYpFZa0LW2d3Q2FyJHacABGFADuGmZelVbN41Pks/aKBSrIACJwAGZQOIw9VWAAElDJZRuO22B7h8enS+dwUBm3W00Q+lRU2AS81Ii1ov3+gPqm0aajgjE42FwBAWvWQAElGHAYBA4B0ANZfGHIBFI3TvDSeEGosAYrE4/FoDSMPBQfTJRjlYgIni0AQADgAzAAGPkiwkjC5CgCcwpetDehmM4vul30eBEFHZAomcuQqvVmpOXK4POQAgkHTEJgFYmVTTGCQFuuWCTY3N4gigUAFAq9dr64w0TpRZwdGltxu4HoEXp9fuGKtZeBcUHxJgA7M79Sn8f7kBAeDAoNhnS5yBltABVf4hN0mj1uVMEhM/QvF0vlvRrWtyGRAA==",
 	"teasingLadyEntrance": "NobwRAcghgtgpmAXGASnA5gVwDZQE5gA0YA4ngPaYAOSYAspQC4AWRYAwuduQYsGAGIAHAEEATAFEALAEYwAXQC+hcNHi0ACpgDO2gJ4AZAJbpmjOcTKUayLbr1hlq2AmQAhbDtaWK1Wh69HFUgXWgAxTyMAE202Kz9kCMxo2KcQ9WQJGHJGIwBjcgA7ON8bMCyc/KKg5wzyvTgAIwoAd20LUlLaCQbm8jaa9NcwABE4ADMoHEYS61oACShCmMG1YbHJ6dmEsHm4KCjV0OQIIyoqbDh27bLT88vU4LWFqCM8MIpCxgBmRpuXt4fIozYicbi8fgCKQiWTfKQKNLPZCLN5uKB5ADWADZ/sjXng0ZijnUDPh0AgfHN3OQonoAKrnOAEUFcHj+XBExHHSA8GBQbC4sBuGmGfpM4nDHpXDrxMpS2Is8G0AQAVjVKqEQgl3Qa10pO3lYjYYLZyFV6s12tsS1yVwA7IKNDajFdjazeIIZOwvV6rfQjNpGHgrtphTkFZ0qWAAMrMciuxWmyEABjEydhCKe3JR724LSZMq6eLeIjyeRDPD03zdSr4gjtQjtAE47RJM7V1sHdNX9WV2NwWDWk56RjIROxq0os3Vo+RMdocb3aLP50OIYJkyr0+m2AIsRJ93acVOO7QSNwAG5XMKYZmRnbn8hXiMm9cCVPJoRidhsDZTbAzCeQwLMmTZCMmgp7CYZiOPIQA"
 };
+
+let tray: API_AppearanceItem | null = null;
 
 export class MaidsPartyNightSinglePlayerAdventure extends LoggingLogic {
 	/** The player */
@@ -201,10 +204,10 @@ export class MaidsPartyNightSinglePlayerAdventure extends LoggingLogic {
 		if (everything) {
 			character.Tell("Emote", "*Welcome to holoroom scenario");
 			character.Tell("Chat", "'A maid's party night'");
-			character.Tell("Emote", "*by Claudia and Jomshir. There are only scenes for submissives in this scenario. " +
-				"Navigate the story by typing emotes [text beginning with '*' or '/me ' ] containing the trigger words in round brackets you can find in many text blocks, such as (start) here. " +
-				"[NOTE: You can also roleplay using the words in brackets: so (start) could be typed as '*start' or '/me starts up the holoroom.' ]" +
-				"\nAdditionally, changing your pose or expressions via clicking on yourself will be used to progress."
+			character.Tell("Emote", "*by Claudia and Jomshir. It is a demo of a choice-based single player experience for submissives, with the goal " +
+				"to inspire others to also create content for the club, using Jomshir's BotAPI. Navigate the story by typing " +
+				"emotes [text beginning with '*' or '/me ' ] containing the trigger words in round brackets you can find in many text blocks, such as (start) here. " +
+				"[NOTE: You can also roleplay using the words in brackets: so (start) could be typed as '*start' or '/me starts up the holoroom.' ]"
 			);
 		}
 		// TODO: Maybe remove 'leave' part after we have the VIP system for rooms available and implemented for this scenario
@@ -693,8 +696,7 @@ export class MaidsPartyNightSinglePlayerAdventure extends LoggingLogic {
 					this.conn.SendMessage("Emote", `*The maid carefully buckles the tray around ${sender.Name}'s hips, its strap going comfortably around her neck. ` +
 						`Following that, Trixie bring an assortment of various drinks for the party and adds them carefully onto the tray.`
 					);
-					// TODO: Item does not show up, probably no rework possible currently: It is Enable: false item, so it can't be added by other players
-					// sender.Appearance.AddItem(AssetGet("ItemMisc", "WoodenMaidTray"));
+					tray = sender.Appearance.AddItem(AssetGet("ItemMisc", "ServingTray"));
 					this.conn.SendMessage("Chat", `Trixie: I think you should be fine balancing it like this. Now there is just the fun part missing~`);
 					this.conn.SendMessage("Emote", `*${sender.Name} watches with widening eyes as the upbeat maid brings a box ` +
 						`of quite obvious content up to her. The tied up maid (mumbles) in her gag again, but Trixie just giggles and winks at her while ` +
@@ -706,7 +708,9 @@ export class MaidsPartyNightSinglePlayerAdventure extends LoggingLogic {
 					this.conn.SendMessage("Emote", `*Over the course of the next minutes, Trixie arranges a careful selection of various kinky items ` +
 						`on ${sender.Name}'s tray. Most notably, a few dildos and plugs of various sizes, as well as vibrating toys, a flogger and even some clamps.`
 					);
-					// sender.Appearance.AddItem(AssetGet("ItemMisc", "WoodenMaidTrayFull"));
+					if (tray !== null && tray.Extended !== null) {
+						tray.Extended.SetType("Toys");
+					}
 					this.conn.SendMessage("Chat", `Trixie: It is best to be prepared! Who knows what tonight's guests might enjoy~`);
 					this.conn.SendMessage("Emote", `*The maid smiles sweetly and dreamy at ${sender.Name}, who can do nothing much than mumble a bit into her gag, ` +
 						`watching the tray getting quite full and weighty. Eventually, Trixie turns around and waves happily towards the head maid.`
@@ -1013,7 +1017,7 @@ export class MaidsPartyNightSinglePlayerAdventure extends LoggingLogic {
 			if (await this.playerCheck(sender)) {
 				sender.Tell("Whisper", "No problems found, have fun!");
 			}
-		} else if (cmd.startsWith("end simulation") && cmd.startsWith("stop simulation")) {
+		} else if (cmd.startsWith("end simulation") || cmd.startsWith("stop simulation")) {
 			await this.cleanUpActionsAsActivePlayerTriggeredRoomReset(sender);
 		} else if (cmd.startsWith("contact")) {
 			let msg = `You can whisper any feedback (including bug reports) for us to the main bot, by starting your message with '!' (eg. !I would like...)\n` +
@@ -1053,16 +1057,8 @@ export class MaidsPartyNightSinglePlayerAdventure extends LoggingLogic {
 			`Other than the larger number of guests, there are also some naked girls involved in various activities, most likely submissive guests. ` +
 			`It is clear that there seem to be quite a few places to visit here.`
 		);
-		// TODO: this is the end for now, even though there is more content already available
-		logger.alert(`Player ${character.Name} (${character.MemberNumber}) reached ending: Club entrance`);
-		this.metric_endings.labels({ ending: "Club entrance" }).inc();
-		this.playerGenericEnd(character, true);
-		return;
-		// end of temporary sudden ending, remove up until here if more is available
 		this.conn.SendMessage("Emote", `*When ${character.Name} looks around, several things stick out. ` +
-			`In the corner of the room, an absolutely (stunning lady) is seen, clearly standing alone.` +
-			`\n[Note: More pathing options may be added here, eventually.]` +
-			``
+			`In the corner of the room, an absolutely (stunning lady) is seen, clearly standing alone.`
 		);
 	}
 
