@@ -1012,8 +1012,8 @@ export class AdministrationLogic extends LogicBase {
 	}
 
 	private a_onRoomUpdate(event: LogicEvent_RoomUpdate): boolean {
-		const newInfo = event.connection.chatRoom.ToInfo() as any;
-		const oldInfo = event.oldInfo as any;
+		const newInfo = event.connection.chatRoom.ToInfo() as Record<string, any>;
+		const oldInfo = event.oldInfo as Record<string, any>;
 		const resolvedCharacter = event.connection.chatRoom.characters.find(c => c.MemberNumber === event.sourceMemberNumber);
 		const byStr = resolvedCharacter !== undefined ?
 			`${resolvedCharacter.Name} (${resolvedCharacter.MemberNumber})` :
