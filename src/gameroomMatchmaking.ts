@@ -63,7 +63,7 @@ export class MatchmakingNotifier {
 		logger.info(`${sender} was added to the matchmaking queue. There are now ${this.matchmaking_list.size} in it.`);
 		sender.Tell("Chat", `GAME: You are now on the 'matchmaking queue' for the game. There ${this.matchmaking_list.size > 1 ? `are` : `is`} ` +
 			`now ${this.matchmaking_list.size} in it. After ${this.beepAtThisCount} players are queued, ` +
-			`you and everyone else will recieve a beep message that you should come back to this room to start ` +
+			`you and everyone else will receive a beep message that you should come back to this room to start ` +
 			`the game. In the meantime, you can either stay in this room or leave it. Note that going offline may ` +
 			`remove you from the queue, but you can use 'beepme' again when you are back. Please avoid ` +
 			`using this service when you are not sure if you are interested in joining a game later!`

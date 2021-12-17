@@ -273,7 +273,7 @@ export class RoleplaychallengeGameRoom extends AdministrationLogic {
 			players: 2,
 			story1: [],
 			role1: ["college student"],
-			story2: ["getting a choice between taking her bad grade or recieving a special lesson from"],
+			story2: ["getting a choice between taking her bad grade or receiving a special lesson from"],
 			role2: ["teaching assistant", "professor"],
 			story3: [],
 			role3: [],

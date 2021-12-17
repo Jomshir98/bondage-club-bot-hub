@@ -104,7 +104,7 @@ Every "promise" aka tease is WHISPERED to the bot. After all players except the 
 Now the player who said her "I wouldn't mind" statement chooses the promise/tease she likes the most. Then the author of the winner sentence is revealed and... CHOOSES if she wants to do what she promised or not :3
 So she can really tie up or kiss shoes or do whatever she said... or she can just say something like 'Haha! Joke's on you, I won't do it~' and that is fair too.
 
-After the tease was fulfilled or denied, the next turn can be started by anybody saying '!next' aloud in the chat. All effects of a tease per default should last for one cycle/round, meaning until it is the teased player's turn again, unless the tease states differently. If a previous tease prevents you to do or recieve a new tease, the previous one should be put out of effect early.
+After the tease was fulfilled or denied, the next turn can be started by anybody saying '!next' aloud in the chat. All effects of a tease per default should last for one cycle/round, meaning until it is the teased player's turn again, unless the tease states differently. If a previous tease prevents you to do or receive a new tease, the previous one should be put out of effect early.
 
 So to summarize, the whole point of the game is to play with the players' expectations and desires, making it a lot of fun for all kinds of people and their various kinks.
 
