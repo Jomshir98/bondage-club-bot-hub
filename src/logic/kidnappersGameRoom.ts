@@ -223,6 +223,18 @@ const mistress_intro =
 	`the other club members and what you do at night, since revealing yourself might make you a primary target ` +
 	`for any kidnapper. But maybe that is your intention~`;
 
+// Metrics
+const metric_gameStarted = new promClient.Counter({
+	name: "hub_kidnappers_game_started",
+	help: "hub_kidnappers_game_started",
+	labelNames: ["playerCount"] as const
+});
+const metric_gameEnded = new promClient.Counter({
+	name: "hub_kidnappers_game_ended",
+	help: "hub_kidnappers_game_ended",
+	labelNames: ["winner"] as const
+});
+
 export class KidnappersGameRoom extends AdministrationLogic {
 	/** The registered players */
 	players: API_Character[] = [];
@@ -268,18 +280,6 @@ export class KidnappersGameRoom extends AdministrationLogic {
 	private charTimer: Map<API_Character, ReturnType<typeof setTimeout>> = new Map();
 
 	readonly conn: API_Connector;
-
-	// Metrics
-	private metric_gameStarted = new promClient.Counter({
-		name: "hub_kidnappers_game_started",
-		help: "hub_kidnappers_game_started",
-		labelNames: ["playerCount"] as const
-	});
-	private metric_gameEnded = new promClient.Counter({
-		name: "hub_kidnappers_game_ended",
-		help: "hub_kidnappers_game_ended",
-		labelNames: ["winner"] as const
-	});
 
 	constructor(conn: API_Connector) {
 		super({ inactivityKickEnabledOnlyBelowFreeSlotsCount: 6 });
@@ -597,6 +597,13 @@ If you would like to make a bot room similar to this one, you can find all neces
 		}
 	}
 
+	public roomCanShutDown(): boolean {
+		if (this.players.length === 0 && this.conn.chatRoom.characters.length === 1) {
+			return true;
+		}
+		return false;
+	}
+
 	private resolvePlayerRemovals(character: API_Character) {
 		this.kidnappers.delete(character);
 		this.club_members.delete(character);
@@ -741,7 +748,7 @@ If you would like to make a bot room similar to this one, you can find all neces
 				);
 			}
 			this.setAllRolesAndCommunicate();
-			this.metric_gameStarted
+			metric_gameStarted
 				.labels({ playerCount: this.players.length })
 				.inc();
 			this.setGameState("day_1");
@@ -1784,7 +1791,7 @@ If you would like to make a bot room similar to this one, you can find all neces
 			`If you need to leave, you can use !freeandleave to get untied and kicked.`
 		);
 
-		this.metric_gameEnded.labels({ winner: "kidnappers" }).inc();
+		metric_gameEnded.labels({ winner: "kidnappers" }).inc();
 
 		this.setGameState("game_was_won");
 	}
@@ -1824,7 +1831,7 @@ If you would like to make a bot room similar to this one, you can find all neces
 			`If you need to leave, you can use !freeandleave to get untied and kicked.`
 		);
 
-		this.metric_gameEnded.labels({ winner: "clubMembers" }).inc();
+		metric_gameEnded.labels({ winner: "clubMembers" }).inc();
 
 		this.setGameState("game_was_won");
 	}

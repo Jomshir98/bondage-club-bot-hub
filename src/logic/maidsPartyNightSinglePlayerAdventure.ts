@@ -933,6 +933,7 @@ export class MaidsPartyNightSinglePlayerAdventure extends LoggingLogic {
 					this.changeBotAppearanceTo("teasingLadyEntrance", this.conn);
 					this.conn.Player.SetExpression("Mouth", "Smirk");
 					this.charPos.set(sender, "teasing_lady_entrance");
+					this.printChatSeparator();
 					this.conn.SendMessage("Emote", `*${sender.Name} approaches the gorgeous lady again. However, she merely smirks mockingly at the ` +
 						`maid and shoos her along, not showing any more interest to interact with her. Therefore, ${sender.Name} slowly (hobbles) back ` +
 						`again to the entrance area.`

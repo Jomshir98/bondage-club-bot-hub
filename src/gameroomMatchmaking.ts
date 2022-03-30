@@ -1,6 +1,18 @@
 import { logger } from "bondage-club-bot-api";
 import promClient from "prom-client";
 
+// Metrics
+const metric_registered = new promClient.Counter({
+	name: "hub_matchmaking_registered",
+	help: "hub_matchmaking_registered",
+	labelNames: ["roomName"] as const
+});
+const metric_success = new promClient.Counter({
+	name: "hub_matchmaking_success",
+	help: "hub_matchmaking_success",
+	labelNames: ["roomName"] as const
+});
+
 export class MatchmakingNotifier {
 
 	/** The matchmaking list with the players in the queue */
@@ -15,18 +27,6 @@ export class MatchmakingNotifier {
 	get waitingPlayers(): number {
 		return this.matchmaking_list.size;
 	}
-
-	// Metrics
-	private metric_registered = new promClient.Counter({
-		name: "hub_matchmaking_registered",
-		help: "hub_matchmaking_registered",
-		labelNames: ["roomName"] as const
-	});
-	private metric_success = new promClient.Counter({
-		name: "hub_matchmaking_success",
-		help: "hub_matchmaking_success",
-		labelNames: ["roomName"] as const
-	});
 
 	constructor(connection: API_Connector, beepAtThisCount: number) {
 		this.connection = connection;
@@ -57,7 +57,7 @@ export class MatchmakingNotifier {
 
 		this.matchmaking_list.add(sender);
 		await this.cleanupOffline();
-		this.metric_registered
+		metric_registered
 			.labels({ roomName: sender.chatRoom.Name })
 			.inc();
 		logger.info(`${sender} was added to the matchmaking queue. There are now ${this.matchmaking_list.size} in it.`);
@@ -77,9 +77,9 @@ export class MatchmakingNotifier {
 	 */
 	async notifyPlayersOfEnoughInterest(registeredPlayers: readonly API_Character[]) {
 		const beepMsg = `There are now enough people in the 'matchmaking queue' to start a game. You and several others got beeped. ` +
-		`Please move to the game room now and wait a few minutes there until everyone has switched rooms.\nNote: You still need ` +
-		`to whisper '!joingame' to the bot inside the game room.\n\nYou are hereby removed from the queue and have to whisper ` +
-		`'!beepme' again inside the room, if you want to be put onto the 'matchmaking queue' again at a later time. Enjoy!~`;
+			`Please move to the game room now and wait a few minutes there until everyone has switched rooms.\nNote: You still need ` +
+			`to whisper '!joingame' to the bot inside the game room.\n\nYou are hereby removed from the queue and have to whisper ` +
+			`'!beepme' again inside the room, if you want to be put onto the 'matchmaking queue' again at a later time. Enjoy!~`;
 
 		for (let i = 0; i < 2; i++) {
 			if (this.matchmaking_list.size === 0) {
@@ -96,12 +96,11 @@ export class MatchmakingNotifier {
 					continue;
 				}
 				// beep everyone that there are enough for a game and then remove them from the friend list and queue
-				this.matchmaking_list.forEach(M =>
-				{
+				this.matchmaking_list.forEach(M => {
 					this.connection.AccountBeep(M.MemberNumber, null, beepMsg);
 					this.connection.Player.FriendListRemove(M.MemberNumber);
 				});
-				this.metric_success.labels({ roomName: this.connection.chatRoom.Name }).inc();
+				metric_success.labels({ roomName: this.connection.chatRoom.Name }).inc();
 				logger.alert(`Successful matchmaking with ${this.matchmaking_list.size} on the list.`);
 				this.matchmaking_list.clear();
 				return true;

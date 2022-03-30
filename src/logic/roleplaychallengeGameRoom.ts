@@ -26,6 +26,18 @@ type GameState =
 /** The matchmaking queue count that triggers a beep message to everyone on it */
 const BEEP_AT_THIS_COUNT = 3;
 
+// Metrics
+const metric_gameStarted = new promClient.Counter({
+	name: "hub_roleplaychallenge_game_started",
+	help: "hub_roleplaychallenge_game_started",
+	labelNames: ["challenge"] as const
+});
+const metric_gameExtended = new promClient.Counter({
+	name: "hub_roleplaychallenge_game_extended",
+	help: "hub_roleplaychallenge_game_extended",
+	labelNames: ["challenge"] as const
+});
+
 export class RoleplaychallengeGameRoom extends AdministrationLogic {
 	/** The registered players */
 	players: Set<API_Character> = new Set();
@@ -54,20 +66,8 @@ export class RoleplaychallengeGameRoom extends AdministrationLogic {
 
 	readonly conn: API_Connector;
 
-	// Metrics
-	private metric_gameStarted = new promClient.Counter({
-		name: "hub_roleplaychallenge_game_started",
-		help: "hub_roleplaychallenge_game_started",
-		labelNames: ["challenge"] as const
-	});
-	private metric_gameExtended = new promClient.Counter({
-		name: "hub_roleplaychallenge_game_extended",
-		help: "hub_roleplaychallenge_game_extended",
-		labelNames: ["challenge"] as const
-	});
-
 	constructor(conn: API_Connector) {
-		super({inactivityKickEnabledOnlyBelowFreeSlotsCount: 5});
+		super({ inactivityKickEnabledOnlyBelowFreeSlotsCount: 5 });
 		this.conn = conn;
 
 		this.registerCommand("status", (connection, args, sender) => this.handleStatusCommand(sender), `To get information about the running game'`);
@@ -306,7 +306,7 @@ export class RoleplaychallengeGameRoom extends AdministrationLogic {
 			story2: ["making it into the finals of the ever popular TV game show 'The kinkster', competing against"],
 			role2: [],
 			story3: [". To win the big prize, their task is to explain a kink of them to the audience in the room and why they love it, " +
-			"in hopes of getting the most votes and the elusive title 'The kinkster'"],
+				"in hopes of getting the most votes and the elusive title 'The kinkster'"],
 			role3: [],
 			room_background: ["MovieStudio", "BondageBedChamber", "KidnapLeague"]
 		},
@@ -420,18 +420,18 @@ export class RoleplaychallengeGameRoom extends AdministrationLogic {
 		for (let i = 0; i < arrayLength; i++) {
 			if (this.challenges[i].players === 2 || this.challenges[i].players === 3) {
 				let tmp = this.traits.length * this.traits.length *
-				(this.challenges[i].story1.length > 1 ? this.challenges[i].story1.length : 1) *
-				(this.challenges[i].story2.length > 1 ? this.challenges[i].story2.length : 1) *
-				(this.challenges[i].story3.length > 1 ? this.challenges[i].story3.length : 1) *
-				(this.challenges[i].role1.length === 0 ? this.roles.length : this.challenges[i].role1.length) *
-				(this.challenges[i].role2.length === 0 ? this.roles.length : this.challenges[i].role2.length);
+					(this.challenges[i].story1.length > 1 ? this.challenges[i].story1.length : 1) *
+					(this.challenges[i].story2.length > 1 ? this.challenges[i].story2.length : 1) *
+					(this.challenges[i].story3.length > 1 ? this.challenges[i].story3.length : 1) *
+					(this.challenges[i].role1.length === 0 ? this.roles.length : this.challenges[i].role1.length) *
+					(this.challenges[i].role2.length === 0 ? this.roles.length : this.challenges[i].role2.length);
 				if (this.challenges[i].players === 3) {
 					tmp *= this.traits.length *
-					(this.challenges[i].role3.length === 0 ? this.roles.length : this.challenges[i].role3.length);
+						(this.challenges[i].role3.length === 0 ? this.roles.length : this.challenges[i].role3.length);
 				}
 				int += tmp;
 			} else {
-				logger.error(`Unsupported number of players in this.challenges[${i}]: ${this.challenges[i].players}.` );
+				logger.error(`Unsupported number of players in this.challenges[${i}]: ${this.challenges[i].players}.`);
 			}
 		}
 		// return rounded down number in million
@@ -625,6 +625,13 @@ If you would like to make a bot room similar to this one, you can find all neces
 		}
 	}
 
+	public roomCanShutDown(): boolean {
+		if (this.players.size === 0 && this.conn.chatRoom.characters.length === 1) {
+			return true;
+		}
+		return false;
+	}
+
 	private async waitForNextRoundAsPlayerLeft() {
 		this.setGameState("waiting_on_next_turn");
 		// Move bot to pos 0
@@ -641,9 +648,9 @@ If you would like to make a bot room similar to this one, you can find all neces
 
 	handleStatusCommand(sender: API_Character) {
 		sender.Tell("Whisper", `This is the current status of the game:` +
-		`${(this.gameState === "game_not_started" || this.gameState === "waiting_on_next_turn") ?
-		`There are ${this.matchmaking_notifier.waitingPlayers > 0 ? `players` : `no players`} in the 'matchmaking ` +
-		`queue'. You may want to consider joining the queue with the beepme command to speed up the next match.\n` : ``}` +
+			`${(this.gameState === "game_not_started" || this.gameState === "waiting_on_next_turn") ?
+				`There are ${this.matchmaking_notifier.waitingPlayers > 0 ? `players` : `no players`} in the 'matchmaking ` +
+				`queue'. You may want to consider joining the queue with the beepme command to speed up the next match.\n` : ``}` +
 			`\nThe game has the following registered players:\n` +
 			Array.from(this.players.values()).map(A => A.toString()).join(", ") + `\nThe latest roleplay challenge is:\n${this.last_challenge}`
 		);
@@ -726,7 +733,7 @@ If you would like to make a bot room similar to this one, you can find all neces
 				this.conn.SendMessage("Emote", `*GAME: The current role play challenge was successfully extended by another 10 mins.`);
 				this.playersVotingForChallengeExtension.clear();
 				this.printedChallengeExtension = false;
-				this.metric_gameExtended
+				metric_gameExtended
 					.labels({ challenge: this.last_challenge_id })
 					.inc();
 				logger.alert("Challenge was extended by another 10 minutes.");
@@ -790,7 +797,7 @@ If you would like to make a bot room similar to this one, you can find all neces
 			let textColor = "#FFFFFF";
 			const green = "#7AFF4F";
 			const orange = "#FFB732";
-			const timeLeft = Math.ceil(Math.max(0, this.turnTimer - now)/1000);
+			const timeLeft = Math.ceil(Math.max(0, this.turnTimer - now) / 1000);
 			const timeLeftString = `${Math.floor(timeLeft / 60)}m ${timeLeft % 60}s`;
 			if (this.gameState === "game_not_started") {
 				text = "Roleplay\nChallenge";
@@ -951,7 +958,7 @@ If you would like to make a bot room similar to this one, you can find all neces
 			// TODO: Idea: introduce voting system to select a new challenge and advertise it here
 			``
 		);
-		this.metric_gameStarted
+		metric_gameStarted
 			.labels({ challenge: index })
 			.inc();
 		logger.alert(msg);
@@ -981,7 +988,7 @@ If you would like to make a bot room similar to this one, you can find all neces
 	getRandomElementFromTraitsArray() {
 		let indefinite_article: string;
 		const strn = (this.traits.length > 0 ? this.traits[Math.floor(Math.random() * this.traits.length)] : "");
-		if (['a', 'e', 'i', 'o', 'u'].some(vowel => strn.startsWith(vowel))){
+		if (['a', 'e', 'i', 'o', 'u'].some(vowel => strn.startsWith(vowel))) {
 			indefinite_article = "an ";
 		} else {
 			indefinite_article = "a ";

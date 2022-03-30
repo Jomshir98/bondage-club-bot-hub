@@ -84,6 +84,28 @@ const ROOMGUARD_THRESHOLD_OK: number = 10;
 const ROOMGUARD_THRESHOLD_WARN: number = 30;
 const ROOMGUARD_THRESHOLD_ACTION: number = 40;
 
+// Metrics
+const metric_players = new promClient.Gauge({
+	name: "hub_players_in_room",
+	help: "hub_players_in_room",
+	labelNames: ["roomName"] as const
+});
+const metric_commands = new promClient.Counter({
+	name: "hub_admin_commands_ran",
+	help: "hub_admin_commands_ran",
+	labelNames: ["roomName", "command"] as const
+});
+const metric_guard_points_current = new promClient.Gauge({
+	name: "hub_admin_guard_points_current",
+	help: "hub_admin_guard_points_current",
+	labelNames: ["memberNumber"] as const
+});
+const metric_guard_points = new promClient.Counter({
+	name: "hub_admin_guard_points",
+	help: "hub_admin_guard_points",
+	labelNames: ["memberNumber"] as const
+});
+
 export class AdministrationLogic extends LogicBase {
 
 	private readonly a_settings: IAdminLogicSettings = {
@@ -117,28 +139,6 @@ export class AdministrationLogic extends LogicBase {
 	private a_guard_didWarn: Set<number> = new Set();
 	private a_guard_Acted: Set<number> = new Set();
 	private a_guard_lastMessage: WeakMap<API_Character, string> = new WeakMap();
-
-	// Metrics
-	private metric_players = new promClient.Gauge({
-		name: "hub_players_in_room",
-		help: "hub_players_in_room",
-		labelNames: ["roomName"] as const
-	});
-	private metric_commands = new promClient.Counter({
-		name: "hub_admin_commands_ran",
-		help: "hub_admin_commands_ran",
-		labelNames: ["roomName", "command"] as const
-	});
-	private metric_guard_points_current = new promClient.Gauge({
-		name: "hub_admin_guard_points_current",
-		help: "hub_admin_guard_points_current",
-		labelNames: ["memberNumber"] as const
-	});
-	private metric_guard_points = new promClient.Counter({
-		name: "hub_admin_guard_points",
-		help: "hub_admin_guard_points",
-		labelNames: ["memberNumber"] as const
-	});
 
 	constructor(settings: Partial<IAdminLogicSettings>) {
 		super();
@@ -712,8 +712,8 @@ export class AdministrationLogic extends LogicBase {
 		if (data.log.length > 32) {
 			data.log.shift();
 		}
-		this.metric_guard_points_current.labels({ memberNumber: target.MemberNumber }).set(data.points);
-		this.metric_guard_points.labels({ memberNumber: target.MemberNumber }).inc(points);
+		metric_guard_points_current.labels({ memberNumber: target.MemberNumber }).set(data.points);
+		metric_guard_points.labels({ memberNumber: target.MemberNumber }).inc(points);
 		if (data.points >= ROOMGUARD_THRESHOLD_WARN && !this.a_guard_didWarn.has(target.MemberNumber)) {
 			logger.alert(`${this.a_LogHeader(target.connection)} GuardPoints warning for ${target}: ${data.points}\n`, ...data.log);
 			data.points = ROOMGUARD_THRESHOLD_WARN;
@@ -746,6 +746,13 @@ export class AdministrationLogic extends LogicBase {
 				this.a_start_kickvote(target.connection, true, target, target.connection.Player, "Room Guard™ detected repeated, likely disruptive or spammy actions.");
 			}
 		}
+		/* TODO: Ban on repetitive violation
+==========[ ROOM GUARD ]==========
+Warning: Room guard has detected your actions as potentially disruptive or spamming.
+Please slow down a bit with what you are currently doing. If your actions continue like this, you will be automatically banned from the room, as this is not your first violation!
+Please be nice to other people that want to just enjoy themselves. Thank you!
+==================================
+*/
 	}
 
 	private a_guard_pointDecay() {
@@ -760,9 +767,9 @@ export class AdministrationLogic extends LogicBase {
 				this.a_guard_points.delete(memberNumber);
 				this.a_guard_didWarn.delete(memberNumber);
 				this.a_guard_Acted.delete(memberNumber);
-				this.metric_guard_points_current.labels({ memberNumber }).set(0);
+				metric_guard_points_current.labels({ memberNumber }).set(0);
 			} else {
-				this.metric_guard_points_current.labels({ memberNumber }).set(data.points);
+				metric_guard_points_current.labels({ memberNumber }).set(data.points);
 			}
 		}
 	}
@@ -872,7 +879,7 @@ export class AdministrationLogic extends LogicBase {
 				const commandInfo = this.a_commands.get(command);
 
 				if (commandInfo) {
-					this.metric_commands
+					metric_commands
 						.labels({
 							command,
 							roomName: event.Sender.chatRoom.Name
@@ -962,7 +969,7 @@ export class AdministrationLogic extends LogicBase {
 			this.a_guard_givePoints(event.character, 5, "left room");
 		}
 
-		this.metric_players
+		metric_players
 			.labels({ roomName: event.character.chatRoom.Name })
 			.set(event.character.chatRoom.characters.filter(c => !c.IsBot()).length);
 
@@ -995,7 +1002,7 @@ export class AdministrationLogic extends LogicBase {
 
 		this.a_guard_givePoints(event.character, 10, "entered room");
 
-		this.metric_players
+		metric_players
 			.labels({ roomName: event.character.chatRoom.Name })
 			.set(event.character.chatRoom.characters.filter(c => !c.IsBot()).length);
 
@@ -1087,6 +1094,20 @@ export class AdministrationLogic extends LogicBase {
 	}
 
 	private a_onBeep(event: LogicEvent_Beep): boolean {
+		if (typeof event.beep.BeepType === "string" && !event.beep.BeepType.startsWith("{")) {
+			const data = event.beep;
+			let beep = `${this.a_LogHeader(event.connection)} Received beep from ${data.MemberName} (${data.MemberNumber})`;
+			if (data.ChatRoomName !== null) {
+				beep += ` in ${data.ChatRoomSpace}:${data.ChatRoomName}`;
+			}
+			if (data.BeepType) {
+				beep += `; Type: ${JSON.stringify(data.BeepType)}`;
+			}
+			if (data.Message != null) {
+				beep += `; Message: ${JSON.stringify(data.Message)}`;
+			}
+			logger.info(beep);
+		}
 		if (event.beep.BeepType == null &&
 			typeof event.beep.Message === "string" &&
 			SUPERUSERS.includes(event.beep.MemberNumber)

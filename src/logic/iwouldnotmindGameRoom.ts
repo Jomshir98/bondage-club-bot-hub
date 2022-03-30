@@ -21,6 +21,12 @@ interface Whisper {
 /** The matchmaking queue count that triggers a beep message to everyone on it */
 const BEEP_AT_THIS_COUNT = 4;
 
+// Metrics
+const metric_gameStarted = new promClient.Counter({
+	name: "hub_iwouldnotmind_game_started",
+	help: "hub_iwouldnotmind_game_started"
+});
+
 export class IwouldnotmindGameRoom extends AdministrationLogic {
 	/** The registered players */
 	players: API_Character[] = [];
@@ -46,14 +52,8 @@ export class IwouldnotmindGameRoom extends AdministrationLogic {
 
 	readonly conn: API_Connector;
 
-	// Metrics
-	private metric_gameStarted = new promClient.Counter({
-		name: "hub_iwouldnotmind_game_started",
-		help: "hub_iwouldnotmind_game_started"
-	});
-
 	constructor(conn: API_Connector) {
-		super({inactivityKickEnabledOnlyBelowFreeSlotsCount: 5});
+		super({ inactivityKickEnabledOnlyBelowFreeSlotsCount: 5 });
 		this.conn = conn;
 
 		this.registerCommand("status", (connection, args, sender) => this.handleStatusCommand(sender), `To get information about the running game`);
@@ -62,7 +62,7 @@ export class IwouldnotmindGameRoom extends AdministrationLogic {
 		this.registerCommand("pick", (connection, args, sender) => this.revealSelection(args, sender), null);
 		this.registerCommand("beepme", (connection, args, sender) => this.handleBeepmeCommand(sender), `To get beeped when enough players are online`);
 
-		this.metric_gameStarted.reset();
+		metric_gameStarted.reset();
 
 		this.matchmaking_notifier = new MatchmakingNotifier(conn, BEEP_AT_THIS_COUNT);
 
@@ -229,6 +229,13 @@ If you would like to make a bot room similar to this one, you can find all neces
 		}
 	}
 
+	public roomCanShutDown(): boolean {
+		if (this.players.length === 0 && this.conn.chatRoom.characters.length === 1) {
+			return true;
+		}
+		return false;
+	}
+
 	private waitForNextRoundAsPlayerLeft() {
 		this.conn.SendMessage("Emote", `*GAME: As the player at turn has left the room, please start the next round by whispering '!next'.`);
 		this.setGameState("waiting_on_next_turn");
@@ -331,15 +338,15 @@ If you would like to make a bot room similar to this one, you can find all neces
 	handleStatusCommand(sender: API_Character) {
 		sender.Tell("Whisper", `This is the current status of the game:\n` +
 			`${(this.gameState === "game_not_started" || this.gameState === "waiting_on_next_turn") ?
-			`There are ${this.matchmaking_notifier.waitingPlayers > 0 ? `players` : `no players`} in the 'matchmaking ` +
-			`queue'. You may want to consider joining the queue with the beepme command to speed up the next match.\n` : ``}` +
+				`There are ${this.matchmaking_notifier.waitingPlayers > 0 ? `players` : `no players`} in the 'matchmaking ` +
+				`queue'. You may want to consider joining the queue with the beepme command to speed up the next match.\n` : ``}` +
 			`The game has the following registered players:\n` +
 			this.players.map(A => A.toString()).join(", ") + `\nThe player at turn is: ${this.active_player !== null ? this.active_player : "none"}\n` +
 			`The player next turn will be: ${this.players.length > 1 && this.active_player !== null ?
 				this.players[(this.players.indexOf(this.active_player) + 1) % this.players.length] : "none"}` +
 			`${this.gameState === "waiting_on_whispers" ? "\nThe following players still need to whisper a tease for " +
-			`${this.active_player !== null ? this.active_player : "none"} to ` +
-			`the bot:\n${Array.from(this.whisperer.values()).map(C => C.toString()).join(", ")}` : ""}`
+				`${this.active_player !== null ? this.active_player : "none"} to ` +
+				`the bot:\n${Array.from(this.whisperer.values()).map(C => C.toString()).join(", ")}` : ""}`
 		);
 	}
 
@@ -471,7 +478,7 @@ If you would like to make a bot room similar to this one, you can find all neces
 			let textColor = "#FFFFFF";
 			const green = "#7AFF4F";
 			const red = "#F42C31";
-			const timeLeft = Math.ceil(Math.max(0, this.turnTimer - now)/1000);
+			const timeLeft = Math.ceil(Math.max(0, this.turnTimer - now) / 1000);
 			const timeLeftString = `${Math.floor(timeLeft / 60)}m ${timeLeft % 60}s`;
 			if (this.gameState === "game_not_started") {
 				text = "I would\nnot mind";
@@ -509,7 +516,7 @@ If you would like to make a bot room similar to this one, you can find all neces
 			this.whispers = [];
 			this.whisperer.clear();
 		} else if (state === "waiting_on_statement") {
-			this.metric_gameStarted.inc();
+			metric_gameStarted.inc();
 			// 2m to give statement
 			this.turnTimer = Date.now() + 120_000;
 		} else if (state === "waiting_on_whispers") {
