@@ -24,6 +24,7 @@ export interface ISchedulerOptions {
 		Background: string;
 		Limit: number;
 	}>;
+	characterDescription: string;
 	condition: () => boolean;
 }
 
@@ -95,7 +96,7 @@ export class BotroomScheduler {
 
 		this.connection.Player.SetItemPermission(BC_PermissionLevel.Owner);
 		this.connection.Player.FriendListAdd(...SUPERUSERS);
-		this.connection.Player.SetDescription(IwouldnotmindGameRoom.description);
+		this.connection.Player.SetDescription(this.options.characterDescription);
 
 		this.logic = new this.options.logic(this.connection);
 		this.connection.logic = this.logic;
@@ -118,9 +119,6 @@ export class BotroomScheduler {
 
 setupLogging("scheduler");
 
-let conn: API_Connector | null = null;
-let testLogic: IwouldnotmindGameRoom | null = null;
-
 const schedulers: BotroomScheduler[] = [];
 
 function run() {
@@ -138,6 +136,7 @@ function run() {
 			Background: "SheikhPrivate",
 			Limit: 7
 		},
+		characterDescription: IwouldnotmindGameRoom.description,
 		condition: () => [1, 5, 6].includes(new Date().getUTCDay())
 	}));
 	schedulers.push(new BotroomScheduler({
@@ -149,6 +148,7 @@ function run() {
 			Background: "CollegeTheater",
 			Limit: 7
 		},
+		characterDescription: RoleplaychallengeGameRoom.description,
 		condition: () => [0, 2, 4].includes(new Date().getUTCDay())
 	}));
 	schedulers.push(new BotroomScheduler({
@@ -160,6 +160,7 @@ function run() {
 			Background: "MainHall",
 			Limit: 10
 		},
+		characterDescription: KidnappersGameRoom.description,
 		condition: () => [0, 3, 6].includes(new Date().getUTCDay())
 	}));
 
@@ -173,10 +174,3 @@ Init()
 	.catch(err => {
 		logger.fatal("Error while running:", err);
 	});
-
-logConfig.onFatal.push(() => {
-	conn?.disconnect();
-	conn = null;
-	testLogic?.destroy();
-	testLogic = null;
-});
