@@ -166,7 +166,7 @@ const gameConfigurations: Record<configurationName, Readonly<gameConfig>> = {
 	}
 };
 
-const listOfUsedItemsInThisScene: ([string, string] | [string, string, string])[] = [
+const listOfUsedItemsInThisScene: ([AssetGroupName, string] | [AssetGroupName, string, string])[] = [
 	["ItemArms", "HempRope", "Hogtied"],
 	["ItemArms", "HempRope", "BoxTie"],
 	["ItemArms", "HempRope", "RopeCuffs"],

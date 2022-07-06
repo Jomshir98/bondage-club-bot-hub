@@ -60,7 +60,7 @@ type UsedRoomBackgrounds =
 	| "MainHall"
 	| "NightClub";
 
-const listOfUsedItemsInThisScene: ([string, string] | [string, string, string])[] = [
+const listOfUsedItemsInThisScene: ([AssetGroupName, string] | [AssetGroupName, string, string])[] = [
 	["ItemHands", "SpankingToys", "Paddle"],
 	["ItemMouth", "DusterGag"],
 	["ItemArms", "LeatherArmbinder", "WrapStrap"],
