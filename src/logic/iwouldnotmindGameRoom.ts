@@ -586,7 +586,11 @@ If you would like to make a bot room similar to this one, you can find all neces
 				logger.warning(`Failed to move player ${player}:`, error);
 			}
 		}
-		await this.conn.Player.MoveToPos(pos);
+		try {
+			await this.conn.Player.MoveToPos(pos);
+		} catch (error) {
+			logger.warning(`Failed to move Player - ${this.conn.Player}:`, error);
+		}
 	}
 
 	destroy() {
