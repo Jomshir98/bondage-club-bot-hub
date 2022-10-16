@@ -183,6 +183,12 @@ export class MagicStrangeRoom extends LogicBase {
 		this.storyProgress = StoryProgress.beggining;
 		this.lockCode = Math.floor(Math.random() * 9000 + 1000);
 		this.saveSlave = SaveSlave.noSave;
+
+		// Unlock the game's chatroom
+		if (this.conn.isInRoom())
+			void this.conn.ChatRoomUpdate({
+				Locked: false
+			});
 	}
 
 	resetCode() {
