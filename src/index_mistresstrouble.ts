@@ -19,7 +19,8 @@ const defaultBotAppearance = JMod.JMod_importAppearanceBundle(
 async function run() {
 	initMetrics(8014, "mistresstrouble");
 
-	conn = await Connect(...accounts[5]);
+	const acc = accounts.mistresstrouble;
+	conn = await Connect(...acc);
 
 	// @ts-ignore: dev
 	global.conn = conn;

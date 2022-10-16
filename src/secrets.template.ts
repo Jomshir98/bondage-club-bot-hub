@@ -1,10 +1,9 @@
-export const accounts: [string, string][] = [
-	["USERNAME", "PASSWORD"], // maid's party night
-	["USERNAME", "PASSWORD"], // maid's party night
-	["USERNAME", "PASSWORD"], // gameroom
-	["USERNAME", "PASSWORD"], // gameroom2
-	["USERNAME", "PASSWORD"], // gameroom3
-	["USERNAME", "PASSWORD"]  // gameroom4
-];
+export const accounts = {
+	"maidspartynight": [["USERNAME", "PASSWORD"], ["USERNAME", "PASSWORD"]],
+	"iwouldnotmind": ["USERNAME", "PASSWORD"],
+	"roleplaychallenge": ["USERNAME", "PASSWORD"],
+	"kidnappers": ["USERNAME", "PASSWORD"],
+	"mistresstrouble": ["USERNAME", "PASSWORD"]
+} as const;
 
 export const DISCORD_WEBHOOK: string = "";

@@ -20,9 +20,10 @@ const defaultBotAppearance = JMod.JMod_importAppearanceBundle(
 async function run() {
 	initMetrics(8010, "maidspartynight");
 
+	const accs = accounts.maidspartynight;
 	[conn, conn2] = await Promise.all([
-		Connect(...accounts[0]),
-		Connect(...accounts[1])
+		Connect(...accs[0]),
+		Connect(...accs[1])
 	]);
 
 	// @ts-ignore: dev

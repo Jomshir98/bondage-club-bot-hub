@@ -129,7 +129,7 @@ function run() {
 
 	schedulers.push(new BotroomScheduler({
 		logic: IwouldnotmindGameRoom,
-		account: accounts[2],
+		account: accounts.iwouldnotmind as [string, string],
 		room: {
 			Name: "I would not mind",
 			Description: "[BOT] scripted multiplayer gameroom | manual in bot profile",
@@ -141,7 +141,7 @@ function run() {
 	}));
 	schedulers.push(new BotroomScheduler({
 		logic: RoleplaychallengeGameRoom,
-		account: accounts[3],
+		account: accounts.roleplaychallenge as [string, string],
 		room: {
 			Name: "Roleplay challenge",
 			Description: "[BOT] scripted multiplayer game room | manual in bot profile | READY",
@@ -153,7 +153,7 @@ function run() {
 	}));
 	schedulers.push(new BotroomScheduler({
 		logic: KidnappersGameRoom,
-		account: accounts[4],
+		account: accounts.kidnappers as [string, string],
 		room: {
 			Name: "Kidnappers",
 			Description: "[BOT] scripted multiplayer gameroom | manual in bot profile",
