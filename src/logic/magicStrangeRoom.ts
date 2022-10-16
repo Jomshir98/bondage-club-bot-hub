@@ -135,7 +135,7 @@ function dressLikeMistress(char: API_Character): boolean {
 }
 
 
-export class MagicStrageRoom extends LogicBase {
+export class MagicStrangeRoom extends LogicBase {
 	/** List of imprisioned people */
 	imprisonedList: Set<number> = new Set();
 	/** Map of active characters */
