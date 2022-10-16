@@ -236,7 +236,6 @@ export class MagicStrangeRoom extends LogicBase {
 			);
 		} else {
 			void this.conn.ChatRoomUpdate({
-				Private: false,
 				Locked: true
 			});
 			this.conn.SendMessage("Emote", "*You hear the door shutting down. The two of you are now locked inside.");
