@@ -248,7 +248,7 @@ export class MagicStrangeRoom extends LogicBase {
 			this.conn.SendMessage("Emote", "*You can only (explore) the room. [NOTE: use the * to make actions]");
 			this.conn.SendMessage(
 				"Emote",
-				"Remember that if you are lost you can always surrender. Just say 'I wish to surrender'. Have fun!"
+				"*Remember that if you are lost you can always surrender. Just say 'I wish to surrender'. Have fun!"
 			);
 		}
 	}
@@ -434,7 +434,7 @@ export class MagicStrangeRoom extends LogicBase {
 					if (!this.canMove(sender, msg)) return;
 					sender.Tell(
 						"Emote",
-						"*Private: It is a bronze plaque with a writing: ONE HAS TO SERVE AND ONE HAS TO DOMINATE. There are also some stylized restrains drawn on the plaque."
+						"*Private: It is a bronze plaque with a writing: ONE HAS TO SERVE AND ONE HAS TO DOMINATE. There are also some stylized restraints drawn on the plaque."
 					);
 				} else if (msg.includes("wooden box") && this.storyProgress === StoryProgress.willOfSubmission) {
 					if (!this.canMove(sender, msg)) return;
@@ -757,7 +757,7 @@ export class MagicStrangeRoom extends LogicBase {
 						} else if (isExposed(sender, ["PolishedChastityBelt"])) {
 							sender.Tell("Emote", "*Private: Looking at yourself with your body exposed you feel vulnerable and accessible.");
 						} else if (sender.IsRestrained()) {
-							sender.Tell("Emote", "*Private: Looking at yourself with the restrains makes you feel powerless. But it's not just a feeling. You are powerless.");
+							sender.Tell("Emote", "*Private: Looking at yourself with the restraints makes you feel powerless. But it's not just a feeling. You are powerless.");
 						} else {
 							sender.Tell("Emote", "*Private: You look at your own reflection in the mirror: you feel beautiful.");
 						}
@@ -904,19 +904,19 @@ export class MagicStrangeRoom extends LogicBase {
 			// ChatRoomCharacterUpdate(sender)
 			sender.Tell(
 				"Emote",
-				"*Private: You hear a 'beep' coming from the gag and the armbinder. Immediately after you hear the locks on your restrain closing with a metallic sound. Now you have no chance of taking the restrains off."
+				"*Private: You hear a 'beep' coming from the gag and the armbinder. Immediately after you hear the locks on your restraints closing with a metallic sound. Now you have no chance of taking the restraints off."
 			);
 
 			if (partner.Appearance.InventoryGet("ItemMouth")?.Asset.Name === "HarnessBallGag" && partner.Appearance.InventoryGet("ItemArms")?.Asset.Name === "LeatherArmbinder") {
 				this.conn.SendMessage(
 					"Emote",
-					`*Now that the locks have closed on ${sender.Name}'s restrains too, you know that you are both doomed. You preferred the comfort of tight restraints and you have to meekly accept the conquences.`
+					`*Now that the locks have closed on ${sender.Name}'s restraints too, you know that you are both doomed. You preferred the comfort of tight restraints and you have to meekly accept the conquences.`
 				);
 				if (this.charPos.get(partner.MemberNumber) === "inside box") {
 					this.imprisonedList.add(partner.MemberNumber);
 					this.conn.SendMessage(
 						"Emote",
-						`*The box door closes behind ${partner.Name} leaving her imprisoned inside. At the same time another wooden opex its door...`
+						`*The box door closes behind ${partner.Name} leaving her imprisoned inside. At the same time another wooden box opens its door...`
 					);
 				} else {
 					setTimeout(() => {
@@ -983,7 +983,7 @@ export class MagicStrangeRoom extends LogicBase {
 				this.conn.SendMessage("Emote", "*BEEEEEEP!.");
 				this.conn.SendMessage(
 					"Emote",
-					`*As soon as the last button is pressed the door of the box closes. Then some mechanical arms appear from the ground: first a thick dildo is inserted inside ${partner.Name}, then a chastity belt and a full set of restrains are locked on the poor girl.`
+					`*As soon as the last button is pressed the door of the box closes. Then some mechanical arms appear from the ground: first a thick dildo is inserted inside ${partner.Name}, then a chastity belt and a full set of restraints are locked on the poor girl.`
 				);
 				const dildo = partner.Appearance.AddItem(AssetGet("ItemVulva", "VibratingDildo"));
 				dildo?.Vibrator?.SetIntensity(3, false);
@@ -1043,7 +1043,7 @@ export class MagicStrangeRoom extends LogicBase {
 					);
 					this.conn.SendMessage(
 						"Chat",
-						"The lock code of her restrains has been given to you. You can now decide if you want to bring her away with you for your pleasure or leave her here, forever locked inside the box. Don't worry, she will have good company. Hihi."
+						"The lock code of her restraints has been given to you. You can now decide if you want to bring her away with you for your pleasure or leave her here, forever locked inside the box. Don't worry, she will have good company. Hihi."
 					);
 					partner.Tell(
 						"Emote",
