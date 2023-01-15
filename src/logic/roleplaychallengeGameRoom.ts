@@ -462,7 +462,7 @@ ROLEPLAY CHALLENGE
 ===================================================================
 a game by Claudia, room concept by Claudia & Clare, using Jomshir's BotAPI
 
-The game offers many randomized roleplay challenges in several million unique variants. It is played with two to three players and is a vehicle to bring more roleplay back to the public rooms of the club. This room may make it easier to meet new people who love to roleplay, like most members did in the early days of the club.
+The game offers many randomized roleplay challenges in several million unique variants. It is played with two to three players and is a vehicle to bring more roleplay back to the public rooms of the club. This room may make it easier to meet new people who love to roleplay, like most members did in the early days of the club. The length of a play is flexible, beyond the first 15 mins.
 
 Game flow
 ---------------------------

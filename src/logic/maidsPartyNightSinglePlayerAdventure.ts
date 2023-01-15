@@ -61,7 +61,7 @@ type UsedRoomBackgrounds =
 	| "NightClub";
 
 const listOfUsedItemsInThisScene: ([AssetGroupName, string] | [AssetGroupName, string, string])[] = [
-	["ItemHands", "SpankingToys", "Paddle"],
+	["ItemHandheld", "Paddle"],
 	["ItemMouth", "DusterGag"],
 	["ItemArms", "LeatherArmbinder", "WrapStrap"],
 	["ItemMouth", "BallGag", "Shiny"],
@@ -603,10 +603,7 @@ export class MaidsPartyNightSinglePlayerAdventure extends LoggingLogic {
 					this.conn.SendMessage("Emote", `*Karina nods content and snaps her fingers, prompting Trixie to lead ${sender.Name} to a nearby sofa ` +
 						`where she is gently guided into a bent position, leaving her butt cheeks quite accessible. Trixie hands head maid Karina a paddle and steps back.`
 					);
-					const item = this.conn.Player.Appearance.AddItem(AssetGet("ItemHands", "SpankingToys"));
-					if (item !== null && item.Extended !== null) {
-						item.Extended.SetType("Paddle");
-					}
+					const item = this.conn.Player.Appearance.AddItem(AssetGet("ItemHandheld", "Paddle"));
 
 					this.conn.SendMessage("Emote", `*The head maid smirks, stepping behind ${sender.Name} with the paddle. She follows up by slowly lifting ` +
 						`${sender.Name}'s dress, exposing her butt in front of the watching maids, who show a wide range emotions, from excitment to ` +
@@ -625,11 +622,13 @@ export class MaidsPartyNightSinglePlayerAdventure extends LoggingLogic {
 					this.conn.SendMessage("Emote", `*After about half a minute, Karina swings down the paddle, giving ${sender.Name}'s butt cheeks ` +
 						`hit number (one), which is clearly a weaker hit to warm them up.`
 					);
-					this.conn.SendMessage("Action", "ActionActivitySpankItem", null, [
+					this.conn.SendMessage("Activity", "ChatOther-ItemButt-SpankItem", null, [
 						{ Tag: "SourceCharacter", Text: "Head Maid Karina", MemberNumber: this.conn.Player.MemberNumber },
-						{ Tag: "DestinationCharacter", Text: sender.Name, MemberNumber: sender.MemberNumber },
-						{ Tag: "FocusAssetGroup", AssetGroupName: "ItemButt" },
-						{ Tag: "NextAsset", AssetName: "SpankingToys" }
+						{ Tag: "TargetCharacter", Text: sender.Name, MemberNumber: sender.MemberNumber },
+						{ FocusGroupName: "ItemButt" },
+						{ ActivityName: "SpankItem" },
+						{ Tag: "ActivityAsset", AssetName: "Paddle", GroupName: "ItemHandheld" },
+						{ Tag: "UsedAsset", Text: "paddle" }
 					]);
 					this.introductionProgress = IntroductionProgress.recievingPunishment;
 					return;
@@ -752,11 +751,13 @@ export class MaidsPartyNightSinglePlayerAdventure extends LoggingLogic {
 					if (this.storyProgress !== StoryProgress.introduction ||
 						this.introductionProgress !== IntroductionProgress.recievingPunishment)
 						return;
-					this.conn.SendMessage("Action", "ActionActivitySpankItem", null, [
+					this.conn.SendMessage("Activity", "ChatOther-ItemButt-SpankItem", null, [
 						{ Tag: "SourceCharacter", Text: "Head Maid Karina", MemberNumber: this.conn.Player.MemberNumber },
-						{ Tag: "DestinationCharacter", Text: sender.Name, MemberNumber: sender.MemberNumber },
-						{ Tag: "FocusAssetGroup", AssetGroupName: "ItemButt" },
-						{ Tag: "NextAsset", AssetName: "SpankingToys" }
+						{ Tag: "TargetCharacter", Text: sender.Name, MemberNumber: sender.MemberNumber },
+						{ FocusGroupName: "ItemButt" },
+						{ ActivityName: "SpankItem" },
+						{ Tag: "ActivityAsset", AssetName: "Paddle", GroupName: "ItemHandheld" },
+						{ Tag: "UsedAsset", Text: "paddle" }
 					]);
 					this.paddleHitCount++;
 					return;
@@ -769,11 +770,13 @@ export class MaidsPartyNightSinglePlayerAdventure extends LoggingLogic {
 					if (this.storyProgress !== StoryProgress.introduction ||
 						this.introductionProgress !== IntroductionProgress.recievingPunishment)
 						return;
-					this.conn.SendMessage("Action", "ActionActivitySpankItem", null, [
+					this.conn.SendMessage("Activity", "ChatOther-ItemButt-SpankItem", null, [
 						{ Tag: "SourceCharacter", Text: "Head Maid Karina", MemberNumber: this.conn.Player.MemberNumber },
-						{ Tag: "DestinationCharacter", Text: sender.Name, MemberNumber: sender.MemberNumber },
-						{ Tag: "FocusAssetGroup", AssetGroupName: "ItemButt" },
-						{ Tag: "NextAsset", AssetName: "SpankingToys" }
+						{ Tag: "TargetCharacter", Text: sender.Name, MemberNumber: sender.MemberNumber },
+						{ FocusGroupName: "ItemButt" },
+						{ ActivityName: "SpankItem" },
+						{ Tag: "ActivityAsset", AssetName: "Paddle", GroupName: "ItemHandheld" },
+						{ Tag: "UsedAsset", Text: "paddle" }
 					]);
 					this.paddleHitCount = 0;
 					return;

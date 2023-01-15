@@ -93,7 +93,7 @@ I WOULDN'T MIND
 a game by Lily, room concept by Claudia & Clare, using Jomshir's BotAPI
 
 In memory of Lily, one of the oldest mistresses of the club, who loves to play games and wanted to bring joy to awesome people with her creative game ideas. 'I wouldn't mind' is her masterpiece.
-It is a kinky and fun multiplayer game in the spirit of popular party games like truth and dare. The game is best played with four to five players, but can be started with three.
+It is a kinky and fun multiplayer game in the spirit of popular party games like truth and dare. The game is best played with four to five players, but can be started with three. Games are rather quick and players can join and leave it in between turns.
 
 Game flow
 ---------------------------

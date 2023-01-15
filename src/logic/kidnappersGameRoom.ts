@@ -335,11 +335,11 @@ KIDNAPPERS - The Game
 ===================================================================
 by D. Davidoff / A. Plotkin, room concept by Claudia & Clare, using Jomshir's BotAPI
 
-The game needs five to nine players. 'Kidnappers' is based on a social deduction game to some maybe known as 'Mafia' or 'Werewolf' (modern digital variants are 'Town of Salem' or 'Among us') and is a special variant the bondage club's Kidnappers League sometimes hosts for registered members of the league.
+The game needs five to nine players. 'Kidnappers' is based on a social deduction game to some maybe known as 'Mafia' or 'Werewolf' (modern digital variants are 'Town of Salem' or 'Among us') and is a special variant the bondage club's Kidnappers League sometimes hosts for registered members of the league. One game takes around 30 minutes, depending on the amount of players.
 
 Game flow (will also be explained while you play)
 ------------------------------------------------------------------
-The game is held over the span of several days. Depending on the number of participants in the game, one or two of them will be secretly chosen as this event's kidnappers by the league and will try to kidnap one (two kidnappers cannot kidnap two) of the other participants every night from their bed rooms in the club.
+The game consists of several rounds, referred to as 'days' in-game. Depending on the number of participants in the game, one or two of them will be secretly chosen as this event's kidnappers by the league and will try to kidnap one (two kidnappers cannot kidnap two) of the other participants every night from their bed rooms in the club.
 Every following day, all participants will come together and talk about the events from last night, possibly accusing someone of being a kidnapper. If enough agree to start a vote, this club member will have the chance to defend herself and then everyone can cast a vote whether they think she is guilty or not. If a majority agrees that the accused is better kept tied up, or when the time runs out, nightfall will happen again.
 
 Game end
