@@ -19,7 +19,8 @@ const defaultBotAppearance = JMod.JMod_importAppearanceBundle(
 async function run() {
 	initMetrics(8012, "roleplaychallenge");
 
-	conn = await Connect(...accounts[3]);
+	const acc = accounts.magicstrangeroom;
+	conn = await Connect(...acc);
 
 	// @ts-ignore: dev
 	global.conn = conn;
